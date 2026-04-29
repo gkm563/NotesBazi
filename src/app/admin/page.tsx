@@ -7,7 +7,8 @@ import {
   TrendingUp, 
   ArrowUpRight,
   ShieldCheck,
-  Clock
+  Clock,
+  AlertTriangle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,16 +19,54 @@ import { cn } from "@/lib/utils";
 export default async function AdminDashboard() {
   const supabase = await createClient();
 
-  // Fetch Stats
-  const { count: userCount } = await supabase.from("profiles").select("*", { count: "exact", head: true });
-  const { count: notesCount } = await supabase.from("notes").select("*", { count: "exact", head: true });
+  // 1. Fetch Stats in Parallel
+  const [
+    { count: userCount },
+    { count: notesCount },
+    { count: reportsCount },
+    { data: allNotes }
+  ] = await Promise.all([
+    supabase.from("profiles").select("*", { count: "exact", head: true }),
+    supabase.from("notes").select("*", { count: "exact", head: true }),
+    supabase.from("reports").select("*", { count: "exact", head: true }),
+    supabase.from("notes").select("downloads, year, type, created_at")
+  ]);
   
-  const { data: downloadData } = await supabase.from("notes").select("downloads");
-  const totalDownloads = downloadData?.reduce((acc, curr) => acc + (curr.downloads || 0), 0) || 0;
+  const totalDownloads = allNotes?.reduce((acc, curr) => acc + (curr.downloads || 0), 0) || 0;
 
-  const { count: ratingsCount } = await supabase.from("ratings").select("*", { count: "exact", head: true });
+  // 2. Aggregate Data for Charts
+  const yearStats = { "1st": 0, "2nd": 0, "3rd": 0, "4th": 0 };
+  const typeStats = { "Notes": 0, "Assignment": 0, "PYQ": 0 };
+  const monthStats: Record<string, number> = {};
 
-  // Fetch Recent Activity
+  allNotes?.forEach(note => {
+    // Year stats
+    if (note.year && note.year.includes('1')) yearStats["1st"]++;
+    else if (note.year && note.year.includes('2')) yearStats["2nd"]++;
+    else if (note.year && note.year.includes('3')) yearStats["3rd"]++;
+    else if (note.year && note.year.includes('4')) yearStats["4th"]++;
+
+    // Type stats
+    if (note.type === 'Notes') typeStats["Notes"]++;
+    else if (note.type === 'Assignment') typeStats["Assignment"]++;
+    else if (note.type === 'PYQ') typeStats["PYQ"]++;
+
+    // Monthly stats for trend
+    const month = new Date(note.created_at).toLocaleString('default', { month: 'short' });
+    monthStats[month] = (monthStats[month] || 0) + 1;
+  });
+
+  const chartData = {
+    trendData: Object.entries(monthStats).map(([month, count]) => ({ month, uploads: count })),
+    yearData: Object.entries(yearStats).map(([name, count]) => ({ name: `${name} Year`, count })),
+    typeData: [
+      { name: "Notes", value: typeStats["Notes"], color: "#4f46e5" },
+      { name: "Assignments", value: typeStats["Assignment"], color: "#8b5cf6" },
+      { name: "PYQs", value: typeStats["PYQ"], color: "#ec4899" },
+    ]
+  };
+
+  // 3. Fetch Recent Activity
   const { data: recentNotes } = await supabase
     .from("notes")
     .select("id, title, subject, created_at, downloads")
@@ -38,7 +77,7 @@ export default async function AdminDashboard() {
     { label: "Total Students", value: userCount || 0, icon: Users, color: "bg-blue-500" },
     { label: "Resources Shared", value: notesCount || 0, icon: FileText, color: "bg-indigo-500" },
     { label: "Total Downloads", value: totalDownloads, icon: Download, color: "bg-emerald-500" },
-    { label: "Student Ratings", value: ratingsCount || 0, icon: Star, color: "bg-amber-500" },
+    { label: "Open Reports", value: reportsCount || 0, icon: AlertTriangle, color: "bg-red-500" },
   ];
 
   return (
@@ -65,7 +104,7 @@ export default async function AdminDashboard() {
                   <stat.icon size={24} />
                 </div>
                 <div className="flex items-center text-emerald-500 font-bold text-sm bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1 rounded-full">
-                  <ArrowUpRight size={14} className="mr-1" /> 12%
+                  <ArrowUpRight size={14} className="mr-1" /> Real-time
                 </div>
               </div>
               <div>
@@ -78,7 +117,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Charts Section */}
-      <AdminCharts />
+      <AdminCharts data={chartData} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Uploads Table */}
@@ -119,6 +158,11 @@ export default async function AdminDashboard() {
                       </td>
                     </tr>
                   ))}
+                  {recentNotes?.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="p-8 text-center text-slate-500">No notes found in the database.</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -132,7 +176,7 @@ export default async function AdminDashboard() {
                <ShieldCheck size={32} />
             </div>
             <h3 className="text-3xl font-black mb-4">System Status</h3>
-            <p className="text-indigo-100 font-medium mb-8 flex-grow">All systems are operational. Database latency is optimal and storage is at 12% capacity.</p>
+            <p className="text-indigo-100 font-medium mb-8 flex-grow">All systems are operational. Database latency is optimal and storage is healthy.</p>
             
             <div className="space-y-4">
                <div className="flex justify-between items-center bg-white/10 p-4 rounded-2xl">
@@ -154,4 +198,5 @@ export default async function AdminDashboard() {
     </div>
   );
 }
+
 

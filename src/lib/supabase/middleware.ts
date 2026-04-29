@@ -63,6 +63,22 @@ export const updateSession = async (request: NextRequest) => {
       return NextResponse.redirect(url);
     }
 
+    // ADMIN ROUTES PROTECTION
+    if (request.nextUrl.pathname.startsWith("/admin")) {
+      if (!user) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/login";
+        return NextResponse.redirect(url);
+      }
+
+      // We check for hardcoded admin email here for immediate access
+      // Role check happens in the Layout for database verification
+      const isHardcodedAdmin = user.email === "admin@notesbazi.com";
+      
+      // If not the specific admin email, we let it pass to the layout 
+      // where the actual DB role check happens.
+    }
+
     return response;
   } catch (e) {
     // If you are here, a Supabase client could not be created!

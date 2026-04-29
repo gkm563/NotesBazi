@@ -11,8 +11,10 @@ import {
   Trash2,
   Edit3,
   Search,
-  Wand2
+  Wand2,
+  Presentation
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useDropzone } from "react-dropzone";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -125,7 +127,7 @@ export default function BulkUpload() {
               year: staged.year,
               type: staged.type,
               file_url: publicUrl,
-              uploader_id: user.id,
+              uploaded_by: user.id,
               is_verified: true,
               downloads: 0
             });
@@ -176,7 +178,7 @@ export default function BulkUpload() {
         </div>
         <div className="text-center">
            <h3 className="text-xl font-black text-slate-900 dark:text-white">Drag & drop resources here</h3>
-           <p className="text-slate-500 font-medium">Supports PDF, JPG, PNG & ZIP (Max 10MB per file)</p>
+           <p className="text-slate-500 font-medium">Supports PDF, PPTX, DOCX & Images (Max 10MB per file)</p>
         </div>
       </div>
 
@@ -195,7 +197,13 @@ export default function BulkUpload() {
                <Card key={item.id} className="border-none shadow-xl shadow-slate-200/40 dark:shadow-none bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden group">
                  <CardContent className="p-6 flex flex-col lg:flex-row items-center gap-6">
                     <div className="h-16 w-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center flex-shrink-0">
-                       <FileText className="text-slate-400" />
+                       {item.file.name.toLowerCase().match(/\.(ppt|pptx)$/) ? (
+                         <Presentation className="text-orange-400" />
+                       ) : item.file.name.toLowerCase().match(/\.(doc|docx)$/) ? (
+                         <FileText className="text-blue-400" />
+                       ) : (
+                         <FileText className="text-slate-400" />
+                       )}
                     </div>
                     
                     <div className="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
@@ -278,6 +286,3 @@ export default function BulkUpload() {
   );
 }
 
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(" ");
-}

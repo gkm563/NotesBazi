@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Search, BookOpen, GraduationCap, Clock, TrendingUp, Download, Eye, Star, ChevronRight, FileText } from "lucide-react";
+import { Search, BookOpen, GraduationCap, Clock, TrendingUp, Download, Eye, Star, ChevronRight, FileText, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { AnimatedSection, StaggerContainer, StaggerItem, FloatingElement } from "@/components/ui/animated-section";
 import { Badge } from "@/components/ui/badge";
@@ -37,35 +37,35 @@ export default async function Home() {
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center flex flex-col items-center">
           <AnimatedSection direction="up" delay={0.1}>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-bold text-sm mb-8 shadow-sm border border-indigo-100 dark:border-indigo-800/50">
-              <SparklesIcon size={16} /> #1 Academic Platform for UIT
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-bold text-xs md:text-sm mb-6 md:mb-8 shadow-sm border border-indigo-100 dark:border-indigo-800/50">
+              <Sparkles size={16} /> #1 Academic Platform for UIT
             </div>
           </AnimatedSection>
           
           <AnimatedSection direction="up" delay={0.2}>
-            <h1 className="text-6xl md:text-8xl font-black text-slate-900 dark:text-white mb-8 tracking-tight">
+            <h1 className="text-4xl sm:text-6xl md:text-8xl font-black text-slate-900 dark:text-white mb-6 md:mb-8 tracking-tight px-2">
               Master your <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 animate-gradient-x">Academics</span>
             </h1>
           </AnimatedSection>
           
           <AnimatedSection direction="up" delay={0.3}>
-            <p className="text-xl text-slate-600 dark:text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed font-medium">
+            <p className="text-base md:text-xl text-slate-600 dark:text-slate-400 mb-8 md:mb-12 max-w-2xl mx-auto leading-relaxed font-medium px-4">
               Discover, share, and collaborate on premium study materials. Smart AI summaries, verified notes, and PYQs at your fingertips.
             </p>
           </AnimatedSection>
 
-          <AnimatedSection direction="up" delay={0.4} className="w-full max-w-3xl">
-            <form action="/notes" className="relative group shadow-2xl shadow-indigo-500/10 dark:shadow-none rounded-full">
-              <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                <Search className="h-6 w-6 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+          <AnimatedSection direction="up" delay={0.4} className="w-full max-w-3xl px-4">
+            <form action="/notes" className="relative group shadow-2xl shadow-indigo-500/10 dark:shadow-none rounded-2xl md:rounded-full">
+              <div className="absolute inset-y-0 left-0 pl-4 md:pl-6 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 md:h-6 md:w-6 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
               </div>
               <input
                 type="text"
                 name="q"
-                placeholder="Search subjects, topics, or keywords..."
-                className="w-full pl-16 pr-32 py-6 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border border-slate-200 dark:border-slate-700 focus:ring-4 focus:ring-indigo-500/20 text-lg transition-all dark:text-white outline-none"
+                placeholder="Search subjects, topics..."
+                className="w-full pl-12 md:pl-16 pr-4 md:pr-32 py-5 md:py-6 rounded-2xl md:rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border border-slate-200 dark:border-slate-700 focus:ring-4 focus:ring-indigo-500/20 text-base md:text-lg transition-all dark:text-white outline-none"
               />
-              <button type="submit" className="absolute right-3 top-3 bottom-3 px-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-bold shadow-md transition-all hover:scale-105">
+              <button type="submit" className="mt-3 md:mt-0 w-full md:w-auto md:absolute md:right-3 md:top-3 md:bottom-3 px-8 py-4 md:py-0 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl md:rounded-full font-bold shadow-md transition-all hover:scale-105">
                 Explore
               </button>
             </form>

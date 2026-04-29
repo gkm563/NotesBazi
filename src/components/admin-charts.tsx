@@ -16,31 +16,24 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const yearData = [
-  { name: "1st Year", count: 45 },
-  { name: "2nd Year", count: 72 },
-  { name: "3rd Year", count: 110 },
-  { name: "4th Year", count: 38 },
-];
+interface ChartData {
+  trendData: { month: string; uploads: number }[];
+  yearData: { name: string; count: number }[];
+  typeData: { name: string; value: number; color: string }[];
+}
 
-const typeData = [
-  { name: "Notes", value: 120, color: "#4f46e5" },
-  { name: "Assignments", value: 85, color: "#8b5cf6" },
-  { name: "PYQs", value: 60, color: "#ec4899" },
-];
+export function AdminCharts({ data }: { data?: ChartData }) {
+  // Fallback to empty or default if no data provided
+  const trendData = data?.trendData || [];
+  const yearData = data?.yearData || [];
+  const typeData = data?.typeData || [
+    { name: "Notes", value: 0, color: "#4f46e5" },
+    { name: "Assignments", value: 0, color: "#8b5cf6" },
+    { name: "PYQs", value: 0, color: "#ec4899" },
+  ];
 
-const trendData = [
-  { month: "Jan", uploads: 20 },
-  { month: "Feb", uploads: 35 },
-  { month: "Mar", uploads: 55 },
-  { month: "Apr", uploads: 45 },
-  { month: "May", uploads: 80 },
-  { month: "Jun", uploads: 95 },
-];
-
-export function AdminCharts() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
       {/* Upload Trend */}
       <Card className="border-none shadow-xl shadow-slate-200/40 dark:shadow-none bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden">
         <CardHeader className="p-8">
@@ -129,3 +122,4 @@ export function AdminCharts() {
     </div>
   );
 }
+

@@ -41,12 +41,12 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
   const { data: similarNotes } = await supabase
     .from("notes")
     .select("id, title, subject, year, downloads")
-    .neq("id", params.id)
+    .neq("id", id)
     .or(`subject.eq."${note.subject}",year.eq."${note.year}"`)
     .limit(4);
 
   // Increment view count (simple implementation)
-  // await supabase.rpc('increment_views', { note_id: params.id });
+  // await supabase.rpc('increment_views', { note_id: id });
 
   return (
     <main className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] transition-colors pb-24">
@@ -54,38 +54,46 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
       <div className="h-64 w-full bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-800 absolute top-0 left-0 z-0 opacity-10 dark:opacity-20" />
       <div className="h-64 w-full bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] absolute top-0 left-0 z-0 opacity-30" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-12">
-        <Link href="/notes" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 mb-8 transition-colors bg-white/50 dark:bg-slate-900/50 backdrop-blur-md px-4 py-2 rounded-full border border-slate-200 dark:border-slate-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-6 md:pt-12">
+        <Link href="/notes" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 mb-6 md:mb-8 transition-colors bg-white/50 dark:bg-slate-900/50 backdrop-blur-md px-4 py-2 rounded-full border border-slate-200 dark:border-slate-800">
           <ArrowLeft size={16} className="mr-2" /> Back to Explore
         </Link>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10">
           {/* Left Column: Preview */}
           <AnimatedSection direction="right" delay={0.2} className="lg:col-span-2 space-y-8">
-            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-[2rem] overflow-hidden shadow-2xl shadow-indigo-500/5 dark:shadow-none border border-slate-200/60 dark:border-slate-700/50 h-[800px] flex flex-col">
-              <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center">
-                     <FileText className="text-indigo-600 dark:text-indigo-400" size={20} />
+            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-2xl shadow-indigo-500/5 dark:shadow-none border border-slate-200/60 dark:border-slate-700/50 h-[500px] md:h-[600px] lg:h-[800px] flex flex-col">
+              <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
+                <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+                  <div className="h-8 w-8 md:h-10 md:w-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
+                     <FileText className="text-indigo-600 dark:text-indigo-400" size={18} />
                   </div>
-                  <span className="font-black text-slate-900 dark:text-white truncate max-w-sm">{note.title}</span>
+                  <span className="font-black text-slate-900 dark:text-white truncate text-sm md:text-base">{note.title}</span>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="rounded-xl border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
+                <div className="flex gap-2 flex-shrink-0">
+                  <Button variant="outline" size="sm" className="hidden sm:flex rounded-xl border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
                      <Share2 size={16} className="mr-2" /> Share
                   </Button>
-                  <Button variant="ghost" size="icon" className="rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
+                  <Button variant="ghost" size="icon" className="rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 h-9 w-9">
                      <Flag size={16} />
                   </Button>
                 </div>
               </div>
               <div className="flex-grow bg-slate-100 dark:bg-[#0B1120] relative">
-                 {/* PDF Viewer Placeholder */}
-                 <iframe 
-                    src={`${note.file_url}#toolbar=0`} 
-                    className="absolute inset-0 w-full h-full border-none"
-                    title={note.title}
-                 />
+                 {/* File Viewer */}
+                 {note.file_url.toLowerCase().endsWith('.pdf') ? (
+                   <iframe 
+                      src={`${note.file_url}#toolbar=0`} 
+                      className="absolute inset-0 w-full h-full border-none"
+                      title={note.title}
+                   />
+                 ) : (
+                   <iframe 
+                      src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(note.file_url)}`} 
+                      className="absolute inset-0 w-full h-full border-none"
+                      title={note.title}
+                   />
+                 )}
               </div>
             </div>
           </AnimatedSection>

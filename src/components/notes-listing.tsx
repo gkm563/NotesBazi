@@ -12,7 +12,9 @@ import {
   FileText, 
   Layers, 
   ChevronRight,
-  MoreVertical
+  MoreVertical,
+  Presentation,
+  FileStack
 } from "lucide-react";
 import { StaggerContainer, StaggerItem } from "@/components/ui/animated-section";
 import { Input } from "@/components/ui/input";
@@ -28,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import Link from "next/link";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export function NotesListing({ initialSearch = "" }: { initialSearch?: string }) {
   const supabase = createClient();
@@ -61,6 +64,7 @@ export function NotesListing({ initialSearch = "" }: { initialSearch?: string })
       if (error) throw error;
       setNotes(data || []);
     } catch (error: any) {
+      console.error("Supabase Fetch Error:", error);
       toast.error(error.message || "Failed to fetch notes");
     } finally {
       setLoading(false);
@@ -76,10 +80,26 @@ export function NotesListing({ initialSearch = "" }: { initialSearch?: string })
     fetchNotes();
   };
 
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+
   return (
     <div className="flex flex-col lg:flex-row gap-8">
+      {/* Mobile Filter Toggle */}
+      <div className="lg:hidden flex gap-4">
+        <Button 
+          variant="outline" 
+          onClick={() => setShowMobileFilters(!showMobileFilters)}
+          className="flex-1 rounded-2xl py-6 font-bold flex gap-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/20"
+        >
+          <Filter size={18} /> {showMobileFilters ? "Hide Filters" : "Show Filters"}
+        </Button>
+      </div>
+
       {/* Sidebar Filters */}
-      <aside className="w-full lg:w-72 space-y-8 flex-shrink-0">
+      <aside className={cn(
+        "w-full lg:w-72 space-y-8 flex-shrink-0 transition-all duration-300",
+        !showMobileFilters && "hidden lg:block"
+      )}>
         <div className="p-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-slate-200/60 dark:border-slate-700/50 shadow-xl shadow-slate-200/20 dark:shadow-none">
           <h3 className="font-black text-slate-900 dark:text-white mb-6 flex items-center text-lg tracking-tight">
             <Filter size={20} className="mr-3 text-indigo-600" /> Filters
@@ -88,7 +108,7 @@ export function NotesListing({ initialSearch = "" }: { initialSearch?: string })
           <div className="space-y-6">
             <div className="space-y-3">
                <label className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Academic Year</label>
-               <Select value={yearFilter} onValueChange={setYearFilter}>
+               <Select value={yearFilter} onValueChange={(val) => {setYearFilter(val); if(window.innerWidth < 1024) setShowMobileFilters(false);}}>
                   <SelectTrigger className="rounded-2xl border-slate-200 dark:border-slate-700 py-6 bg-slate-50 dark:bg-slate-800/50 focus:ring-indigo-500/20">
                      <SelectValue placeholder="Select Year" />
                   </SelectTrigger>
@@ -104,7 +124,7 @@ export function NotesListing({ initialSearch = "" }: { initialSearch?: string })
 
             <div className="space-y-3">
                <label className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Resource Type</label>
-               <Select value={typeFilter} onValueChange={setTypeFilter}>
+               <Select value={typeFilter} onValueChange={(val) => {setTypeFilter(val); if(window.innerWidth < 1024) setShowMobileFilters(false);}}>
                   <SelectTrigger className="rounded-2xl border-slate-200 dark:border-slate-700 py-6 bg-slate-50 dark:bg-slate-800/50 focus:ring-indigo-500/20">
                      <SelectValue placeholder="Select Type" />
                   </SelectTrigger>
@@ -120,7 +140,7 @@ export function NotesListing({ initialSearch = "" }: { initialSearch?: string })
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
                <Button 
                   variant="ghost" 
-                  onClick={() => {setYearFilter("All"); setTypeFilter("All"); setSearchTerm("");}}
+                  onClick={() => {setYearFilter("All"); setTypeFilter("All"); setSearchTerm(""); setShowMobileFilters(false);}}
                   className="w-full text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl py-6 transition-all"
                >
                   Reset All Filters
@@ -173,7 +193,13 @@ export function NotesListing({ initialSearch = "" }: { initialSearch?: string })
                       
                       <div className="h-32 w-full bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-800/50 rounded-2xl flex items-center justify-center mb-6 group-hover:from-indigo-50 group-hover:to-violet-50 dark:group-hover:from-indigo-900/20 dark:group-hover:to-violet-900/20 transition-colors relative overflow-hidden">
                          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-50" />
-                         <FileText size={48} strokeWidth={1.5} className="text-slate-300 dark:text-slate-600 group-hover:text-indigo-400 group-hover:scale-110 transition-all duration-500 drop-shadow-sm relative z-10" />
+                         {note.file_url?.toLowerCase().match(/\.(ppt|pptx)$/) ? (
+                           <Presentation size={48} strokeWidth={1.5} className="text-orange-300 dark:text-orange-600 group-hover:text-orange-500 group-hover:scale-110 transition-all duration-500 drop-shadow-sm relative z-10" />
+                         ) : note.file_url?.toLowerCase().match(/\.(doc|docx)$/) ? (
+                           <FileStack size={48} strokeWidth={1.5} className="text-blue-300 dark:text-blue-600 group-hover:text-blue-500 group-hover:scale-110 transition-all duration-500 drop-shadow-sm relative z-10" />
+                         ) : (
+                           <FileText size={48} strokeWidth={1.5} className="text-slate-300 dark:text-slate-600 group-hover:text-indigo-400 group-hover:scale-110 transition-all duration-500 drop-shadow-sm relative z-10" />
+                         )}
                       </div>
                       
                       <p className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-2 line-clamp-1">

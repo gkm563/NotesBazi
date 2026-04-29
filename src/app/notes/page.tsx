@@ -2,12 +2,13 @@ import { NotesListing } from "@/components/notes-listing";
 import { GraduationCap } from "lucide-react";
 import { Suspense } from "react";
 
-export default function NotesPage({
+export default async function NotesPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const query = typeof searchParams.q === "string" ? searchParams.q : "";
+  const resolvedParams = await searchParams;
+  const query = typeof resolvedParams.q === "string" ? resolvedParams.q : "";
 
   return (
     <main className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] transition-colors pb-20">

@@ -17,21 +17,36 @@ export async function uploadNoteAction(formData: {
 
   if (!user) throw new Error("Unauthorized");
 
-  // Call Gemini for extra insights
-  const aiData = await extractMetadata(formData.title, formData.description, formData.subject);
+  // Call Gemini for extra insights with fallback
+  let aiData = { summary: "", keywords: [] };
+  try {
+    aiData = await extractMetadata(formData.title, formData.description, formData.subject);
+  } catch (aiError) {
+    console.error("AI extraction failed, using defaults:", aiError);
+  }
 
   const { data, error } = await supabase
     .from("notes")
     .insert({
-      ...formData,
+      title: formData.title,
+      subject: formData.subject,
+      year: formData.year,
+      type: formData.type,
+      description: formData.description,
+      file_url: formData.file_url,
       uploaded_by: user.id,
-      summary: aiData.summary,
-      keywords: aiData.keywords,
+      summary: aiData?.summary || "",
+      keywords: aiData?.keywords || [],
+      downloads: 0,
+      is_verified: false,
     })
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error("Supabase insert error:", error);
+    throw new Error(`Failed to save note: ${error.message}`);
+  }
 
   revalidatePath("/notes");
   revalidatePath("/dashboard");
@@ -55,12 +70,12 @@ export async function deleteNoteAction(noteId: string) {
   if (fetchError || !note) throw new Error("Note not found");
   if (note.uploaded_by !== user.id) throw new Error("Unauthorized to delete this note");
 
-  // Extract file path from URL (Assuming format: .../storage/v1/object/public/notes_storage/USER_ID/FILENAME)
-  const urlParts = note.file_url.split('/notes_storage/');
+  // Extract file path from URL (Assuming format: .../storage/v1/object/public/notes/USER_ID/FILENAME)
+  const urlParts = note.file_url.split('/notes/');
   if (urlParts.length > 1) {
     const filePath = urlParts[1];
     // Delete from storage
-    await supabase.storage.from('notes_storage').remove([filePath]);
+    await supabase.storage.from('notes').remove([filePath]);
   }
 
   // Delete from database

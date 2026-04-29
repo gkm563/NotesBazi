@@ -17,15 +17,38 @@ import Link from "next/link";
 export default async function ReportSystem() {
   const supabase = await createClient();
 
-  // Fetch reports with associated notes and profiles
-  const { data: reports, error } = await supabase
+  // 1. Fetch all reports
+  const { data: reportsData, error: reportsError } = await supabase
     .from("reports")
-    .select(`
-      *,
-      notes(id, title),
-      profiles(name)
-    `)
+    .select("*")
     .order("created_at", { ascending: false });
+
+  if (reportsError) {
+    console.error("Error fetching reports:", reportsError);
+  }
+
+  // 2. Fetch associated notes and profiles manually
+  let reports = reportsData || [];
+  if (reports.length > 0) {
+    const noteIds = [...new Set(reports.map(r => r.note_id).filter(Boolean))];
+    const userIds = [...new Set(reports.map(r => r.user_id).filter(Boolean))];
+
+    const [notesRes, profilesRes] = await Promise.all([
+      supabase.from("notes").select("id, title").in("id", noteIds),
+      supabase.from("profiles").select("id, username").in("id", userIds)
+    ]);
+
+    const noteMap = Object.fromEntries(notesRes.data?.map(n => [n.id, n]) || []);
+    const profileMap = Object.fromEntries(profilesRes.data?.map(p => [p.id, p]) || []);
+
+    reports = reports.map(report => ({
+      ...report,
+      notes: report.note_id ? noteMap[report.note_id] : null,
+      profiles: report.user_id ? profileMap[report.user_id] : null
+    }));
+  }
+
+  const error = reportsError;
 
   return (
     <div className="space-y-8">
@@ -53,8 +76,8 @@ export default async function ReportSystem() {
                         <div className="space-y-4 flex-grow">
                            <div className="flex items-center gap-3">
                               <Badge className="bg-red-50 text-red-600 border-none font-black px-3 py-1">URGENT</Badge>
-                              <div className="flex items-center gap-2 text-sm font-bold text-slate-400">
-                                 <Clock size={16} /> {new Date(report.created_at).toLocaleString()}
+                              <div className="flex items-center gap-2 text-sm font-bold text-slate-400" suppressHydrationWarning>
+                                 <Clock size={16} /> {report.created_at ? new Date(report.created_at).toISOString().split('T')[0] : "N/A"}
                               </div>
                            </div>
                            
@@ -69,7 +92,7 @@ export default async function ReportSystem() {
                            <div className="flex items-center gap-4 text-sm font-bold text-slate-500">
                               <div className="flex items-center gap-2">
                                  <User size={16} className="text-indigo-500" /> 
-                                 Reported by: <span className="text-slate-900 dark:text-white">{report.profiles?.name || "Anonymous Student"}</span>
+                                 Reported by: <span className="text-slate-900 dark:text-white">{report.profiles?.username || "Anonymous Student"}</span>
                               </div>
                            </div>
                         </div>

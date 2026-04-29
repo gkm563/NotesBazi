@@ -28,6 +28,17 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
+  // Admin Guard: Redirect admins to their own dashboard
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role === 'admin') {
+    redirect("/admin");
+  }
+
   const { data: notes } = await supabase
     .from("notes")
     .select("*")

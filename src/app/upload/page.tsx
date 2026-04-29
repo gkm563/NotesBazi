@@ -44,17 +44,23 @@ export default function UploadPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (selected) {
+      if (selected.size > 10 * 1024 * 1024) {
+        return toast.error("File is too large. Maximum size is 10MB.");
+      }
+      
       if (
         selected.type === "application/pdf" ||
         selected.type === "application/msword" ||
-        selected.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        selected.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+        selected.type === "application/vnd.ms-powerpoint" ||
+        selected.type === "application/vnd.openxmlformats-officedocument.presentationml.presentation"
       ) {
         setFile(selected);
         // Auto-fill title from filename
         const cleanName = selected.name.replace(/\.[^/.]+$/, "");
         setMetadata(prev => ({ ...prev, title: cleanName }));
       } else {
-        toast.error("Invalid file type. Please upload PDF, DOC, or DOCX.");
+        toast.error("Invalid file type. Please upload PDF, DOCX, or PPTX.");
       }
     }
   };
@@ -74,13 +80,13 @@ export default function UploadPage() {
       const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError, data } = await supabase.storage
-        .from("notes_storage")
+        .from("notes")
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from("notes_storage")
+        .from("notes")
         .getPublicUrl(filePath);
 
       // 2. Call Server Action (handles AI and DB)
@@ -115,7 +121,7 @@ export default function UploadPage() {
             <Card className="border-none shadow-xl bg-white dark:bg-slate-900 rounded-3xl overflow-hidden h-full flex flex-col">
               <CardHeader className="bg-indigo-600 text-white pb-10">
                 <CardTitle className="text-xl">Step 1: Select File</CardTitle>
-                <CardDescription className="text-indigo-100">Upload your PDF, DOC, or DOCX file.</CardDescription>
+                <CardDescription className="text-indigo-100">Upload your PDF, DOCX, or PPTX file.</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow flex flex-col justify-center p-8 -mt-6">
                 <div 
@@ -127,7 +133,7 @@ export default function UploadPage() {
                 >
                   <input
                     type="file"
-                    accept=".pdf,.doc,.docx"
+                    accept=".pdf,.doc,.docx,.ppt,.pptx"
                     onChange={handleFileChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
@@ -157,7 +163,7 @@ export default function UploadPage() {
                       </div>
                       <div>
                         <p className="font-bold text-slate-900 dark:text-white">Click or Drag & Drop</p>
-                        <p className="text-sm text-slate-500">PDF, DOC, DOCX up to 10MB</p>
+                        <p className="text-sm text-slate-500">PDF, DOCX, PPTX up to 10MB</p>
                       </div>
                     </div>
                   )}
