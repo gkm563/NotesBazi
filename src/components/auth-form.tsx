@@ -10,6 +10,7 @@ import { Loader, Eye, EyeOff, ArrowRight, BookOpen, Mail, Lock, User, ShieldChec
 import { toast } from "sonner";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { getURL } from "@/lib/utils";
 
 interface AuthFormProps {
   mode: "login" | "signup" | "forgot";
@@ -32,7 +33,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     try {
       if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/auth/reset-password`,
+          redirectTo: `${getURL()}auth/reset-password`,
         });
         if (error) throw error;
         setForgotSent(true);
@@ -78,7 +79,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${getURL()}auth/callback`,
           queryParams: { access_type: "offline", prompt: "consent" },
         },
       });
