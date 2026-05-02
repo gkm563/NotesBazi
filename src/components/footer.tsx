@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen, Github, Linkedin, Mail, Twitter, FileText, Upload, TrendingUp, HelpCircle } from "lucide-react";
+import { BookOpen, Mail, FileText, Upload, TrendingUp, HelpCircle, Link as LinkIcon, Code, Send } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -57,7 +57,7 @@ export function Footer() {
                     <p className="text-sm font-black text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">Gautam Kumar Maurya</p>
                     <p className="text-[10px] font-bold text-slate-400 uppercase">@gkm563 • UIT Prayagraj</p>
                   </div>
-                  <Linkedin className="h-4 w-4 text-slate-300 group-hover:text-indigo-600 ml-2" />
+                  <LinkIcon className="h-4 w-4 text-slate-300 group-hover:text-indigo-600 ml-2" />
                </Link>
             </div>
           </div>
@@ -118,8 +118,8 @@ export function Footer() {
                <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] mb-4">Connect</h3>
                <div className="flex gap-4">
                 <Link href="mailto:contact@notesbazi.com" className="h-10 w-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all"><Mail size={18} /></Link>
-                <Link href="#" className="h-10 w-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all"><Twitter size={18} /></Link>
-                <Link href="#" className="h-10 w-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all"><Github size={18} /></Link>
+                <Link href="#" className="h-10 w-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all"><Send size={18} /></Link>
+                <Link href="#" className="h-10 w-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all"><Code size={18} /></Link>
                </div>
             </div>
           </div>
