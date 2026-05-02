@@ -83,7 +83,9 @@ export function CommandMenu() {
       if (e.key === "Escape") setOpen(false);
     };
     document.addEventListener("keydown", down);
-    return () => document.removeClientListener ? null : document.removeEventListener("keydown", down);
+    return () => {
+      document.removeEventListener("keydown", down);
+    };
   }, []);
 
   useEffect(() => {

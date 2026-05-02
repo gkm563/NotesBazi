@@ -37,14 +37,23 @@ export default async function LeaderboardPage() {
     });
   }
 
+  interface Contributor {
+    id: string;
+    name: string | null;
+    department: string | null;
+    role: string | null;
+    username: string | null;
+    uploadCount: number;
+  }
+
   // Fetch all profiles so everyone is on the leaderboard
   const { data: profilesData } = await supabase
     .from("profiles")
-    .select("id, name, department, role");
+    .select("id, name, department, role, username");
 
-  let contributors = [];
+  let contributors: Contributor[] = [];
   if (profilesData) {
-    contributors = profilesData.map(p => ({
+    contributors = (profilesData as any[]).map(p => ({
       ...p,
       uploadCount: uploadCounts[p.id] || 0,
       name: p.role === 'admin' ? 'System Admin - NotesBazi' : p.name
