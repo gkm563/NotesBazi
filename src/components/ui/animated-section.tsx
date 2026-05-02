@@ -34,7 +34,7 @@ export function AnimatedSection({
     <motion.div
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
+      viewport={{ once: true, margin: "0px" }}
       transition={{ duration, delay, ease: [0.16, 1, 0.3, 1] }} // Spring-like ease out
       variants={getVariants()}
       className={className}

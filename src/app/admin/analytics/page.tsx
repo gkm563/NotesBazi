@@ -114,46 +114,52 @@ export default async function AnalyticsPage() {
           <AdminCharts data={chartData} />
         </Card>
 
-        {/* Device Distribution (Estimated/Mock as not in schema) */}
+        {/* Subject Distribution */}
         <Card className="border-none shadow-xl shadow-slate-200/40 dark:shadow-none bg-white dark:bg-slate-900 rounded-[2.5rem] p-8">
           <CardHeader className="p-0 mb-8">
             <CardTitle className="text-2xl font-black flex items-center gap-3">
-              <Smartphone className="text-violet-500" /> Platform Insights
+              <Globe className="text-violet-500" /> Subject Focus
             </CardTitle>
-            <CardDescription className="text-slate-500 font-medium">Estimated engagement based on activity.</CardDescription>
+            <CardDescription className="text-slate-500 font-medium">Top subjects by resource count.</CardDescription>
           </CardHeader>
           <div className="space-y-6">
-             <div className="space-y-2">
-                <div className="flex justify-between text-sm font-bold">
-                   <span className="flex items-center gap-2"><Monitor size={16} className="text-blue-500" /> Desktop Access</span>
-                   <span>~65%</span>
-                </div>
-                <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                   <div className="h-full bg-blue-500 rounded-full" style={{ width: '65%' }} />
-                </div>
-             </div>
-             <div className="space-y-2">
-                <div className="flex justify-between text-sm font-bold">
-                   <span className="flex items-center gap-2"><Smartphone size={16} className="text-indigo-500" /> Mobile Access</span>
-                   <span>~30%</span>
-                </div>
-                <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                   <div className="h-full bg-indigo-500 rounded-full" style={{ width: '30%' }} />
-                </div>
-             </div>
-             <div className="space-y-2">
-                <div className="flex justify-between text-sm font-bold">
-                   <span className="flex items-center gap-2"><Calendar size={16} className="text-emerald-500" /> Recency</span>
-                   <span>Active</span>
-                </div>
-                <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                   <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }} />
-                </div>
-             </div>
+             {Object.entries(
+               allNotes?.reduce((acc: Record<string, number>, note) => {
+                 acc[note.subject] = (acc[note.subject] || 0) + 1;
+                 return acc;
+               }, {}) || {}
+             )
+             .sort((a, b) => b[1] - a[1])
+             .slice(0, 5)
+             .map(([subject, count], i) => {
+               const percentage = allNotes && allNotes.length > 0 ? (count / allNotes.length) * 100 : 0;
+               const colors = ["bg-indigo-500", "bg-violet-500", "bg-emerald-500", "bg-amber-500", "bg-rose-500"];
+               return (
+                 <div key={subject} className="space-y-2">
+                    <div className="flex justify-between text-sm font-bold">
+                       <span className="truncate pr-4">{subject}</span>
+                       <span>{count} notes</span>
+                    </div>
+                    <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                       <div className={cn("h-full rounded-full", colors[i % colors.length])} style={{ width: `${percentage}%` }} />
+                    </div>
+                 </div>
+               );
+             })}
+
+             {allNotes?.length === 0 && (
+               <div className="py-12 text-center text-slate-400 font-bold">
+                  No subject data available yet.
+               </div>
+             )}
 
              <div className="mt-12 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-800">
-                <h4 className="font-black text-slate-900 dark:text-white mb-2">Insight</h4>
-                <p className="text-sm text-slate-500 font-medium">Most students are uploading PYQs recently, indicating an upcoming exam season.</p>
+                <h4 className="font-black text-slate-900 dark:text-white mb-2">Platform Insight</h4>
+                <p className="text-sm text-slate-500 font-medium">
+                  {allNotes && allNotes.length > 0 
+                    ? `The community is most active in ${Object.entries(allNotes.reduce((acc: any, n) => { acc[n.subject] = (acc[n.subject] || 0) + 1; return acc; }, {})).sort((a: any, b: any) => b[1] - a[1])[0][0]}.` 
+                    : "Start uploading resources to see platform-wide insights."}
+                </p>
              </div>
           </div>
         </Card>

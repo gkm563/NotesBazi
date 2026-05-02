@@ -1,6 +1,7 @@
 import { NotesListing } from "@/components/notes-listing";
 import { GraduationCap } from "lucide-react";
 import { Suspense } from "react";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function NotesPage({
   searchParams,
@@ -9,7 +10,45 @@ export default async function NotesPage({
 }) {
   const resolvedParams = await searchParams;
   const query = typeof resolvedParams.q === "string" ? resolvedParams.q : "";
+  const year = typeof resolvedParams.year === "string" ? resolvedParams.year : "All";
+  const type = typeof resolvedParams.type === "string" ? resolvedParams.type : "All";
+  
+  // Fetch initial notes server-side
+  const supabase = await createClient();
+  let dbQuery = supabase
+    .from("notes")
+    .select("*")
+    .order("created_at", { ascending: false });
 
+  if (query) {
+    dbQuery = dbQuery.or(`title.ilike.%${query}%,subject.ilike.%${query}%,description.ilike.%${query}%`);
+  }
+
+  if (year !== "All") {
+    dbQuery = dbQuery.eq("year", year);
+  }
+
+  if (type !== "All") {
+    dbQuery = dbQuery.eq("type", type);
+  }
+
+  const { data: rawNotes } = await dbQuery;
+  
+  let initialNotes = rawNotes || [];
+  
+  // Extract unique uploader IDs and fetch profiles
+  const uploaderIds = Array.from(new Set(initialNotes.map(n => n.uploaded_by).filter(Boolean)));
+  if (uploaderIds.length > 0) {
+    const { data: profilesData } = await supabase
+      .from("profiles")
+      .select("id, name, role, avatar_url")
+      .in("id", uploaderIds);
+      
+    if (profilesData) {
+      const profileMap = new Map(profilesData.map(p => [p.id, p]));
+      initialNotes = initialNotes.map(n => ({ ...n, profiles: profileMap.get(n.uploaded_by) || null }));
+    }
+  }
   return (
     <main className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] transition-colors pb-20">
       {/* Premium Hero Section */}
@@ -42,7 +81,12 @@ export default async function NotesPage({
             <div className="h-[400px] bg-white dark:bg-slate-800 rounded-3xl animate-pulse shadow-xl md:col-span-2" />
           </div>
         }>
-          <NotesListing initialSearch={query} />
+          <NotesListing 
+            initialSearch={query} 
+            initialData={initialNotes || []} 
+            initialYear={year}
+            initialType={type}
+          />
         </Suspense>
       </div>
     </main>

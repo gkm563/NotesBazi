@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { AdminReportActions } from "@/components/admin-report-actions";
 
 export default async function ReportSystem() {
   const supabase = await createClient();
@@ -98,14 +99,7 @@ export default async function ReportSystem() {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex flex-col gap-3 w-full lg:w-64">
-                           <Button className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black shadow-lg shadow-red-500/20 flex gap-2">
-                              <Trash2 size={20} /> Delete Resource
-                           </Button>
-                           <Button variant="outline" className="w-full h-14 rounded-2xl font-black border-slate-200 dark:border-slate-800 flex gap-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 hover:text-emerald-600">
-                              <CheckCircle size={20} /> Dismiss Report
-                           </Button>
-                        </div>
+                        <AdminReportActions reportId={report.id} noteId={report.note_id} />
                      </div>
                   </div>
                </div>

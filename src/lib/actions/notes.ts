@@ -91,3 +91,29 @@ export async function deleteNoteAction(noteId: string) {
   revalidatePath("/dashboard");
   return { success: true };
 }
+
+export async function reportNoteAction(formData: {
+  noteId: string;
+  reason: string;
+}) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Unauthorized");
+
+  const { error } = await supabase
+    .from("reports")
+    .insert({
+      note_id: formData.noteId,
+      user_id: user.id,
+      reason: formData.reason,
+      status: "pending"
+    });
+
+  if (error) {
+    console.error("Report submission error:", error);
+    throw new Error(`Failed to submit report: ${error.message}`);
+  }
+
+  return { success: true };
+}

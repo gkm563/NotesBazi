@@ -1,19 +1,12 @@
 import { AuthForm } from "@/components/auth-form";
-import { CheckCircle, GraduationCap, BookMarked, Medal, Sparkles } from "lucide-react";
+import { GraduationCap, KeyRound } from "lucide-react";
 import Link from "next/link";
 
-const perks = [
-  { icon: BookMarked, text: "Access thousands of curated study notes" },
-  { icon: Medal, text: "Climb the leaderboard by uploading quality notes" },
-  { icon: Sparkles, text: "Get AI-powered summaries of every document" },
-  { icon: CheckCircle, text: "100% free — forever, for students" },
-];
-
-export default function SignupPage() {
+export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
       {/* Left Panel — Form */}
-      <div className="flex flex-col min-h-screen bg-white dark:bg-slate-950 order-2 lg:order-1">
+      <div className="flex flex-col min-h-screen bg-white dark:bg-slate-950">
         {/* Mobile header */}
         <div className="lg:hidden flex items-center gap-3 px-6 pt-8 pb-4">
           <Link href="/" className="inline-flex items-center gap-2">
@@ -26,16 +19,15 @@ export default function SignupPage() {
 
         <div className="flex-1 flex items-center justify-center px-6 py-12 lg:px-16">
           <div className="w-full max-w-md">
-            <AuthForm mode="signup" />
+            <AuthForm mode="forgot" />
           </div>
         </div>
       </div>
 
-      {/* Right Panel — Branding */}
-      <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-violet-700 via-indigo-600 to-blue-600 p-16 relative overflow-hidden order-1 lg:order-2">
-        {/* Background decoration */}
-        <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-white/5 rounded-full" />
-        <div className="absolute -bottom-32 -right-32 w-[400px] h-[400px] bg-white/5 rounded-full" />
+      {/* Right Panel */}
+      <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-slate-800 via-indigo-900 to-violet-900 p-16 relative overflow-hidden">
+        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] bg-white/5 rounded-full" />
+        <div className="absolute -bottom-32 -left-32 w-[400px] h-[400px] bg-white/5 rounded-full" />
 
         <div className="relative z-10">
           <Link href="/" className="inline-flex items-center gap-3">
@@ -46,25 +38,22 @@ export default function SignupPage() {
           </Link>
         </div>
 
-        <div className="relative z-10 space-y-8">
+        <div className="relative z-10 space-y-6">
+          <div className="h-24 w-24 bg-white/10 border border-white/20 rounded-3xl flex items-center justify-center">
+            <KeyRound size={48} className="text-indigo-300" />
+          </div>
           <div className="space-y-4">
             <h2 className="text-4xl font-black text-white leading-tight">
-              Join 1,200+<br />Students Already<br />Sharing Notes
+              Forgot your<br />password?
             </h2>
             <p className="text-indigo-200 text-lg font-medium leading-relaxed max-w-sm">
-              Upload your notes, help others, and become a top contributor on the leaderboard.
+              No worries! Enter your email address and we'll send you a secure link to reset your password instantly.
             </p>
           </div>
-
-          <div className="space-y-4">
-            {perks.map((perk) => (
-              <div key={perk.text} className="flex items-center gap-4">
-                <div className="h-10 w-10 bg-white/10 border border-white/20 rounded-xl flex items-center justify-center shrink-0">
-                  <perk.icon size={18} className="text-indigo-200" />
-                </div>
-                <p className="text-white font-semibold text-sm">{perk.text}</p>
-              </div>
-            ))}
+          <div className="p-5 bg-white/10 border border-white/20 rounded-2xl">
+            <p className="text-indigo-200 text-sm font-medium">
+              💡 <strong className="text-white">Tip:</strong> Check your spam/junk folder if you don't see the email within a few minutes.
+            </p>
           </div>
         </div>
 

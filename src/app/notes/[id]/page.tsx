@@ -12,7 +12,8 @@ import {
   Flag,
   ArrowLeft,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +21,9 @@ import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { NoteActions } from "@/components/note-actions";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/ui/animated-section";
-
+import { ViewCounter } from "@/components/view-counter";
+import { ReportButton } from "@/components/report-button";
+import { cn } from "@/lib/utils";
 export default async function NoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
@@ -30,11 +33,22 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
     .eq("id", id)
     .single();
 
+  if (note && note.uploaded_by) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name, department, role")
+      .eq("id", note.uploaded_by)
+      .single();
+    if (profile) {
+      note.profiles = profile;
+    }
+  }
+
   if (error || !note) {
     return notFound();
   }
 
-  let aiSummary = note.summary || "This document provides comprehensive notes and study materials covering core concepts, essential algorithms, and previous examination patterns for the subject.";
+  let aiSummary = note.summary;
   let aiKeywords = note.keywords || [];
 
   // Fetch similar notes (same subject or year, excluding current)
@@ -45,11 +59,9 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
     .or(`subject.eq."${note.subject}",year.eq."${note.year}"`)
     .limit(4);
 
-  // Increment view count (simple implementation)
-  // await supabase.rpc('increment_views', { note_id: id });
-
   return (
     <main className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] transition-colors pb-24">
+      <ViewCounter noteId={id} />
       {/* Premium Header Background */}
       <div className="h-64 w-full bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-800 absolute top-0 left-0 z-0 opacity-10 dark:opacity-20" />
       <div className="h-64 w-full bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] absolute top-0 left-0 z-0 opacity-30" />
@@ -74,9 +86,7 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
                   <Button variant="outline" size="sm" className="hidden sm:flex rounded-xl border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
                      <Share2 size={16} className="mr-2" /> Share
                   </Button>
-                  <Button variant="ghost" size="icon" className="rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 h-9 w-9">
-                     <Flag size={16} />
-                  </Button>
+                  <ReportButton noteId={id} noteTitle={note.title} />
                 </div>
               </div>
               <div className="flex-grow bg-slate-100 dark:bg-[#0B1120] relative">
@@ -114,35 +124,42 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
               <h1 className="text-3xl font-black text-slate-900 dark:text-white leading-tight mb-3">{note.title}</h1>
               <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest text-sm mb-8">{note.subject}</p>
 
-              <div className="grid grid-cols-2 gap-4 py-6 border-y border-slate-100 dark:border-slate-800 mb-8">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-6 border-y border-slate-100 dark:border-slate-800 mb-8">
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
                   <p className="text-xs text-slate-400 font-extrabold uppercase tracking-widest mb-1">Academic Year</p>
                   <p className="text-xl font-black text-slate-700 dark:text-slate-200">{note.year} Year</p>
                 </div>
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                  <p className="text-xs text-slate-400 font-extrabold uppercase tracking-widest mb-1">Total Views</p>
+                  <p className="text-xl font-black text-indigo-600 dark:text-indigo-400">{note.views || 0}</p>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 col-span-2 md:col-span-1">
                   <p className="text-xs text-slate-400 font-extrabold uppercase tracking-widest mb-1">Downloads</p>
                   <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{note.downloads || 0}</p>
                 </div>
               </div>
 
               <div className="space-y-5 mb-8">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-700 shadow-sm">
-                    <User size={20} className="text-slate-500" />
+                <Link href={`/profile/${note.profiles?.username || note.uploaded_by}`} className="flex items-center gap-4 group">
+                  <div className="h-12 w-12 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-700 shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                    <User size={20} />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Uploaded by</p>
-                    <p className="text-base font-bold text-slate-900 dark:text-white">{note.profiles?.name || "Community Member"}</p>
+                    <p className="text-base font-black text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">
+                       {note.profiles?.role === 'admin' ? "System Admin - NotesBazi" : (note.profiles?.name || "Student")}
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">{note.profiles?.role === 'admin' ? "Platform" : (note.profiles?.department || "General")} Department</p>
                   </div>
-                </div>
+                </Link>
                 <div className="flex items-center gap-4">
                   <div className="h-12 w-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-700 shadow-sm">
-                    <Calendar size={20} className="text-slate-500" />
+                    <Clock size={20} className="text-slate-500" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Published On</p>
                     <p className="text-base font-bold text-slate-900 dark:text-white">
-                      {new Date(note.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      {new Date(note.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })} • {new Date(note.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
@@ -161,7 +178,7 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
                </h3>
                <div className="relative z-10 mb-6">
                  <p className="text-sm text-indigo-100/80 leading-relaxed font-medium">
-                   {aiSummary}
+                   {aiSummary || "An AI-powered summary for this resource is currently being processed and will be available shortly."}
                  </p>
                </div>
                <div className="flex flex-wrap gap-2 relative z-10">

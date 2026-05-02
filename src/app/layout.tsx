@@ -22,11 +22,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
-      <body className={`${inter.className} antialiased selection:bg-indigo-100 selection:text-indigo-900 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors`}>
+      <body className={`${inter.className} antialiased selection:bg-indigo-100 selection:text-indigo-900 bg-background text-foreground transition-colors`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
+          defaultTheme="system"
+          enableSystem={true}
           disableTransitionOnChange
         >
           <Navbar />

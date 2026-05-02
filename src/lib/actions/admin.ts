@@ -45,3 +45,78 @@ export async function deleteUserAccount(userId: string) {
   revalidatePath('/admin/users')
   return { success: true }
 }
+
+export async function resolveReport(reportId: string, status: 'resolved' | 'ignored') {
+  const supabase = createAdminClient()
+  
+  const { error } = await supabase
+    .from('reports')
+    .update({ status })
+    .eq('id', reportId)
+
+  if (error) {
+    console.error('Error resolving report:', error)
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath('/admin/reports')
+  return { success: true }
+}
+
+export async function deleteResourceByAdmin(noteId: string, reportId?: string) {
+  const supabase = createAdminClient()
+
+  // 1. Fetch note to get file_url
+  const { data: note } = await supabase
+    .from('notes')
+    .select('file_url')
+    .eq('id', noteId)
+    .single()
+
+  if (note?.file_url) {
+    // Extract file path from URL
+    const urlParts = note.file_url.split('/notes/')
+    if (urlParts.length > 1) {
+      await supabase.storage.from('notes').remove([urlParts[1]])
+    }
+  }
+
+  // 2. Delete note (cascades to reports)
+  const { error } = await supabase
+    .from('notes')
+    .delete()
+    .eq('id', noteId)
+
+  if (error) {
+    console.error('Error deleting note as admin:', error)
+    return { success: false, error: error.message }
+  }
+
+  if (reportId) {
+    // Also mark report as resolved if it wasn't already cascaded
+    await supabase.from('reports').update({ status: 'resolved' }).eq('id', reportId)
+  }
+
+  revalidatePath('/admin/reports')
+  revalidatePath('/admin/notes')
+  revalidatePath('/notes')
+  return { success: true }
+}
+
+export async function verifyResourceAction(noteId: string, currentStatus: boolean) {
+  const supabase = createAdminClient()
+  
+  const { error } = await supabase
+    .from('notes')
+    .update({ is_verified: !currentStatus })
+    .eq('id', noteId)
+
+  if (error) {
+    console.error('Error verifying note:', error)
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath('/admin/notes')
+  revalidatePath('/notes')
+  return { success: true }
+}

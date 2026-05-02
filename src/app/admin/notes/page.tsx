@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
+import { AdminNoteActions } from "@/components/admin-note-actions";
 import { cn } from "@/lib/utils";
 
 export default async function NotesManagement() {
@@ -148,15 +149,10 @@ export default async function NotesManagement() {
 
             {/* Actions */}
             <div className="flex gap-3 lg:border-l lg:border-slate-100 lg:dark:border-slate-800 lg:pl-8">
-               <Button variant="outline" className="rounded-2xl h-12 w-12 p-0 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 transition-all border-slate-100 dark:border-slate-800">
-                  <CheckCircle size={20} />
-               </Button>
+               <AdminNoteActions noteId={note.id} isVerified={!!note.is_verified} />
                <Link href={`/notes/${note.id}`} className="inline-flex items-center justify-center rounded-2xl h-12 px-6 bg-slate-900 dark:bg-slate-800 text-white font-bold hover:bg-indigo-600 transition-all">
                   View Resource
                </Link>
-               <Button variant="outline" className="rounded-2xl h-12 w-12 p-0 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 transition-all border-slate-100 dark:border-slate-800">
-                  <Trash2 size={20} />
-               </Button>
             </div>
           </div>
         ))}
