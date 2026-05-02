@@ -14,35 +14,46 @@ export default async function Home() {
     const supabase = await createClient();
     
     // Fetch notes first without the broken join
-    const [trendingRes, recentRes, contributorRes] = await Promise.all([
+    // Fetch everything needed
+    const [trendingRes, recentRes, allNotesRes, allProfilesRes] = await Promise.all([
       supabase.from("notes").select("id, title, subject, year, type, downloads, views, uploaded_by").order("views", { ascending: false }).limit(4),
       supabase.from("notes").select("id, title, subject, year, type, created_at, uploaded_by").order("created_at", { ascending: false }).limit(4),
-      supabase.from("profiles").select("id, name, department, role").neq("role", "admin").order("id", { ascending: true }).limit(1)
+      supabase.from("notes").select("uploaded_by"),
+      supabase.from("profiles").select("id, name, role, department, avatar_url")
     ]);
     
     trendingNotes = trendingRes.data || [];
     recentNotes = recentRes.data || [];
-    
-    // Extract unique uploader IDs
-    const uploaderIds = Array.from(new Set([
-      ...trendingNotes.map(n => n.uploaded_by),
-      ...recentNotes.map(n => n.uploaded_by)
-    ].filter(Boolean)));
+    const allNotes = allNotesRes.data || [];
+    const allProfiles = allProfilesRes.data || [];
+    const profileMap = new Map(allProfiles.map(p => [p.id, p]));
 
-    if (uploaderIds.length > 0) {
-      const { data: profilesData } = await supabase
-        .from("profiles")
-        .select("id, name, role, avatar_url")
-        .in("id", uploaderIds);
-        
-      if (profilesData) {
-        const profileMap = new Map(profilesData.map(p => [p.id, p]));
-        trendingNotes = trendingNotes.map(n => ({ ...n, profiles: profileMap.get(n.uploaded_by) || null }));
-        recentNotes = recentNotes.map(n => ({ ...n, profiles: profileMap.get(n.uploaded_by) || null }));
+    // Calculate top contributor
+    const counts = allNotes.reduce((acc: Record<string, number>, note) => {
+      if (note.uploaded_by) acc[note.uploaded_by] = (acc[note.uploaded_by] || 0) + 1;
+      return acc;
+    }, {});
+
+    const sortedUserIds = Object.entries(counts)
+      .sort(([, a], [, b]) => b - a);
+
+    let topUserId = null;
+    for (const [uid] of sortedUserIds) {
+      const p = profileMap.get(uid);
+      if (p && p.role !== 'admin') {
+        topUserId = uid;
+        break;
       }
     }
 
-    topContributor = contributorRes.data?.[0] || null;
+    if (topUserId) {
+      topContributor = profileMap.get(topUserId);
+    }
+    
+    // Map profiles to trending/recent notes
+    trendingNotes = trendingNotes.map(n => ({ ...n, profiles: profileMap.get(n.uploaded_by) || null }));
+    recentNotes = recentNotes.map(n => ({ ...n, profiles: profileMap.get(n.uploaded_by) || null }));
+
   } catch (error) {
     console.error("Database fetch failed:", error);
   }
@@ -129,16 +140,20 @@ export default async function Home() {
                   View full leaderboard <ChevronRight size={18} className="ml-1" />
                 </Link>
               </div>
-              <div className="flex-shrink-0 relative">
-                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 p-1">
-                  <div className="w-full h-full rounded-full bg-white dark:bg-slate-800 flex items-center justify-center border-4 border-white dark:border-slate-800">
-                    <User size={64} className="text-slate-300 dark:text-slate-600" />
+              <Link href={topContributor ? `/profile/${topContributor.id}` : "/leaderboard"} className="flex-shrink-0 relative group/avatar">
+                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 p-1 transition-transform group-hover/avatar:scale-105">
+                  <div className="w-full h-full rounded-full bg-white dark:bg-slate-800 flex items-center justify-center border-4 border-white dark:border-slate-800 overflow-hidden">
+                    {topContributor?.avatar_url ? (
+                      <img src={topContributor.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={64} className="text-slate-300 dark:text-slate-600" />
+                    )}
                   </div>
                 </div>
                 <div className="absolute -bottom-4 -right-4 bg-amber-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-black text-xl border-4 border-white dark:border-slate-900 shadow-lg">
                   #1
                 </div>
-              </div>
+              </Link>
             </div>
           </div>
         </AnimatedSection>
