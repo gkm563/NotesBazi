@@ -53,11 +53,13 @@ export default async function LeaderboardPage() {
 
   let contributors: Contributor[] = [];
   if (profilesData) {
-    contributors = (profilesData as any[]).map(p => ({
-      ...p,
-      uploadCount: uploadCounts[p.id] || 0,
-      name: p.role === 'admin' ? 'System Admin - NotesBazi' : p.name
-    })).sort((a, b) => b.uploadCount - a.uploadCount);
+    contributors = (profilesData as any[])
+      .filter(p => p.role !== 'admin') // Exclude admins for fair competition
+      .map(p => ({
+        ...p,
+        uploadCount: uploadCounts[p.id] || 0,
+      }))
+      .sort((a, b) => b.uploadCount - a.uploadCount);
   }
 
   const topThree = contributors.slice(0, 3);

@@ -17,7 +17,7 @@ export default async function Home() {
     const [trendingRes, recentRes, contributorRes] = await Promise.all([
       supabase.from("notes").select("id, title, subject, year, type, downloads, views, uploaded_by").order("views", { ascending: false }).limit(4),
       supabase.from("notes").select("id, title, subject, year, type, created_at, uploaded_by").order("created_at", { ascending: false }).limit(4),
-      supabase.from("profiles").select("id, name, department, role").order("id", { ascending: true }).limit(1)
+      supabase.from("profiles").select("id, name, department, role").neq("role", "admin").order("id", { ascending: true }).limit(1)
     ]);
     
     trendingNotes = trendingRes.data || [];
@@ -43,9 +43,6 @@ export default async function Home() {
     }
 
     topContributor = contributorRes.data?.[0] || null;
-    if (topContributor && topContributor.role === 'admin') {
-      topContributor.name = 'System Admin - NotesBazi';
-    }
   } catch (error) {
     console.error("Database fetch failed:", error);
   }
