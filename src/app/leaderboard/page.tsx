@@ -173,27 +173,29 @@ export default async function LeaderboardPage() {
                 </div>
                 <div className="divide-y divide-slate-50 dark:divide-slate-800">
                   {rest.map((user, index) => (
-                      <div key={user.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                        <div className="flex items-center gap-6">
-                            <span className="text-xl font-black text-slate-300 w-8">#{index + 4}</span>
-                            <div className="h-12 w-12 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center text-indigo-600 font-black">
-                              {user.name?.[0]}
-                            </div>
-                            <div>
-                              <h4 className="font-black text-slate-900 dark:text-white">{user.name}</h4>
-                              <p className="text-xs font-bold text-slate-400 uppercase">{user.department} Dept.</p>
-                            </div>
+                      <Link key={user.id} href={`/profile/${user.id}`} className="block group">
+                        <div className="p-6 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                          <div className="flex items-center gap-6">
+                              <span className="text-xl font-black text-slate-300 w-8 group-hover:text-indigo-600 transition-colors">#{index + 4}</span>
+                              <div className="h-12 w-12 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center text-indigo-600 font-black group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                {user.name?.[0]}
+                              </div>
+                              <div>
+                                <h4 className="font-black text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">{user.name}</h4>
+                                <p className="text-xs font-bold text-slate-400 uppercase">{user.department} Dept.</p>
+                              </div>
+                          </div>
+                          <div className="flex items-center gap-8">
+                              <div className="text-right hidden sm:block">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Resources</p>
+                                <p className="font-black text-slate-900 dark:text-white">{user.uploadCount}</p>
+                              </div>
+                              <Badge variant="outline" className="rounded-xl border-slate-200 dark:border-slate-700 px-4 py-1.5 font-bold text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:border-indigo-200 transition-all">
+                                Contributor
+                              </Badge>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-8">
-                            <div className="text-right hidden sm:block">
-                              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Resources</p>
-                              <p className="font-black text-slate-900 dark:text-white">{user.uploadCount}</p>
-                            </div>
-                            <Badge variant="outline" className="rounded-xl border-slate-200 dark:border-slate-700 px-4 py-1.5 font-bold text-slate-500">
-                              Contributor
-                            </Badge>
-                        </div>
-                      </div>
+                      </Link>
                   ))}
                 </div>
             </Card>

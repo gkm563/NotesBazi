@@ -117,3 +117,39 @@ export async function reportNoteAction(formData: {
 
   return { success: true };
 }
+
+export async function updateNoteAction(noteId: string, formData: {
+  title: string;
+  subject: string;
+  year: string;
+  type: string;
+  description: string;
+}) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Unauthorized");
+
+  const { error } = await supabase
+    .from("notes")
+    .update({
+      title: formData.title,
+      subject: formData.subject,
+      year: formData.year,
+      type: formData.type,
+      description: formData.description,
+    })
+    .eq("id", noteId)
+    .eq("uploaded_by", user.id);
+
+  if (error) {
+    console.error("Supabase update error:", error);
+    throw new Error(`Failed to update note: ${error.message}`);
+  }
+
+  revalidatePath("/notes");
+  revalidatePath(`/notes/${noteId}`);
+  revalidatePath("/dashboard");
+  
+  return { success: true };
+}

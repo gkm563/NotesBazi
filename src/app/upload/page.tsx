@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { 
   Upload, 
@@ -27,7 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { uploadNoteAction } from "@/lib/actions/notes";
+import { uploadNoteAction, updateNoteAction } from "@/lib/actions/notes";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -57,6 +57,36 @@ export default function UploadPage() {
     type: "Notes",
     description: "",
   });
+
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
+
+  useEffect(() => {
+    if (editId) {
+      const fetchNote = async () => {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from("notes")
+          .select("*")
+          .eq("id", editId)
+          .single();
+        
+        if (data && !error) {
+          setMetadata({
+            title: data.title,
+            subject: data.subject,
+            year: data.year,
+            type: data.type,
+            description: data.description || "",
+          });
+          // For editing, we don't necessarily need the file, 
+          // but we might want to show a "File Locked" or "Current File" state.
+        }
+        setLoading(false);
+      };
+      fetchNote();
+    }
+  }, [editId, supabase]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -105,7 +135,7 @@ export default function UploadPage() {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return toast.error("Please select a file to upload");
+    if (!editId && !file) return toast.error("Please select a file to upload");
     if (!metadata.subject) return toast.error("Please select or enter a subject");
     
     setLoading(true);
@@ -117,29 +147,37 @@ export default function UploadPage() {
         return;
       }
 
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
+      if (editId) {
+        // Mode: Edit
+        await updateNoteAction(editId, metadata);
+        toast.success("Resource updated successfully!");
+        router.push("/dashboard");
+      } else if (file) {
+        // Mode: Upload New
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `${user.id}/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("notes")
-        .upload(filePath, file);
+        const { error: uploadError } = await supabase.storage
+          .from("notes")
+          .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("notes")
-        .getPublicUrl(filePath);
+        const { data: { publicUrl } } = supabase.storage
+          .from("notes")
+          .getPublicUrl(filePath);
 
-      await uploadNoteAction({
-        ...metadata,
-        file_url: publicUrl,
-      });
+        await uploadNoteAction({
+          ...metadata,
+          file_url: publicUrl,
+        });
 
-      toast.success("Brilliant! Your resource is live and helping others.");
-      router.push("/dashboard");
+        toast.success("Brilliant! Your resource is live and helping others.");
+        router.push("/dashboard");
+      }
     } catch (error: any) {
-      toast.error(error.message || "Upload failed. Please try again.");
+      toast.error(error.message || "Operation failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -230,13 +268,18 @@ export default function UploadPage() {
                           type="file"
                           accept=".pdf,.doc,.docx,.ppt,.pptx,image/*"
                           onChange={handleFileChange}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          disabled={!!editId}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
                         />
                         <div className="mx-auto h-24 w-24 bg-indigo-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-xl">
-                          <Upload size={48} />
+                          {editId ? <ShieldCheck size={48} /> : <Upload size={48} />}
                         </div>
-                        <h4 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Click or Drag & Drop</h4>
-                        <p className="text-slate-500 font-bold">PDF, Word, PPT or Images (Max 15MB)</p>
+                        <h4 className="text-2xl font-black text-slate-900 dark:text-white mb-2">
+                           {editId ? "File is Locked" : "Click or Drag & Drop"}
+                        </h4>
+                        <p className="text-slate-500 font-bold">
+                           {editId ? "You can only edit details, not the file itself." : "PDF, Word, PPT or Images (Max 15MB)"}
+                        </p>
                       </motion.div>
                     ) : (
                       <motion.div 
@@ -402,12 +445,12 @@ export default function UploadPage() {
                       {loading ? (
                         <div className="flex items-center gap-4">
                           <Loader className="h-8 w-8 animate-spin" />
-                          <span>Publishing your work...</span>
+                          <span>{editId ? "Updating..." : "Publishing..."}</span>
                         </div>
                       ) : (
                         <div className="flex items-center justify-center gap-4">
                           <Zap size={28} className="fill-current group-hover:scale-125 transition-transform" />
-                          <span>Submit Resource</span>
+                          <span>{editId ? "Save Changes" : "Submit Resource"}</span>
                           <ArrowRight size={28} className="ml-2 group-hover:translate-x-3 transition-transform" />
                         </div>
                       )}
