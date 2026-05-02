@@ -203,7 +203,7 @@ export function NotesListing({
           <div className="space-y-6">
             <div className="space-y-3">
                <label className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Academic Year</label>
-               <Select value={yearFilter} onValueChange={(val: string) => {setYearFilter(val); updateUrl(searchTerm, val, typeFilter); if(window.innerWidth < 1024) setShowMobileFilters(false);}}>
+               <Select value={yearFilter} onValueChange={(val: string | null) => {const v = val || "All"; setYearFilter(v); updateUrl(searchTerm, v, typeFilter); if(window.innerWidth < 1024) setShowMobileFilters(false);}}>
                   <SelectTrigger className="rounded-2xl border-slate-200 dark:border-slate-700 py-6 bg-slate-50 dark:bg-slate-800/50 focus:ring-indigo-500/20">
                      <SelectValue placeholder="Select Year" />
                   </SelectTrigger>
@@ -219,7 +219,7 @@ export function NotesListing({
 
             <div className="space-y-3">
                <label className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Resource Type</label>
-               <Select value={typeFilter} onValueChange={(val: string) => {setTypeFilter(val); updateUrl(searchTerm, yearFilter, val); if(window.innerWidth < 1024) setShowMobileFilters(false);}}>
+               <Select value={typeFilter} onValueChange={(val: string | null) => {const v = val || "All"; setTypeFilter(v); updateUrl(searchTerm, yearFilter, v); if(window.innerWidth < 1024) setShowMobileFilters(false);}}>
                   <SelectTrigger className="rounded-2xl border-slate-200 dark:border-slate-700 py-6 bg-slate-50 dark:bg-slate-800/50 focus:ring-indigo-500/20">
                      <SelectValue placeholder="Select Type" />
                   </SelectTrigger>
