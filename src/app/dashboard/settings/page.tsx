@@ -254,7 +254,7 @@ export default function SettingsPage() {
                   <Label className="text-xs font-black uppercase text-slate-400 tracking-widest">Department</Label>
                   <Select 
                     value={formData.department} 
-                    onValueChange={(val) => setFormData({...formData, department: val})}
+                    onValueChange={(val: string) => setFormData({...formData, department: val || "Other"})}
                   >
                     <SelectTrigger className="h-14 rounded-2xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold focus:ring-indigo-500/20">
                       <div className="flex items-center gap-3">
