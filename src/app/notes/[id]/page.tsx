@@ -89,21 +89,25 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
                   <ReportButton noteId={id} noteTitle={note.title} />
                 </div>
               </div>
-              <div className="flex-grow bg-slate-100 dark:bg-[#0B1120] relative">
-                 {/* File Viewer */}
-                 {note.file_url.toLowerCase().endsWith('.pdf') ? (
-                   <iframe 
-                      src={`${note.file_url}#toolbar=0`} 
-                      className="absolute inset-0 w-full h-full border-none"
-                      title={note.title}
-                   />
-                 ) : (
-                   <iframe 
-                      src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(note.file_url)}`} 
-                      className="absolute inset-0 w-full h-full border-none"
-                      title={note.title}
-                   />
-                 )}
+              <div className="flex-grow bg-slate-100 dark:bg-[#0B1120] relative group">
+                  {/* Enhanced File Viewer with Mobile Optimization */}
+                  <iframe 
+                    src={`https://docs.google.com/viewer?url=${encodeURIComponent(note.file_url)}&embedded=true`} 
+                    className="absolute inset-0 w-full h-full border-none z-10"
+                    title={note.title}
+                  />
+                  
+                  {/* Mobile-friendly Overlay for problematic viewers */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-slate-900/10 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none md:pointer-events-auto">
+                    <Button 
+                      asChild
+                      className="pointer-events-auto rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-xl font-bold"
+                    >
+                      <a href={note.file_url} target="_blank" rel="noopener noreferrer">
+                        Open in Full Screen
+                      </a>
+                    </Button>
+                  </div>
               </div>
             </div>
           </AnimatedSection>
