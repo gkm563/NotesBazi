@@ -17,12 +17,13 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AdminCharts } from "@/components/admin-charts";
+import { cn } from "@/lib/utils";
 
 export default async function AnalyticsPage() {
   const supabase = await createClient();
 
   // 1. Fetch Real Data
-  const { data: allNotes } = await supabase.from("notes").select("downloads, year, type, created_at");
+  const { data: allNotes } = await supabase.from("notes").select("downloads, year, type, subject, created_at");
   const { count: userCount } = await supabase.from("profiles").select("*", { count: "exact", head: true });
   
   // 2. Aggregate Data

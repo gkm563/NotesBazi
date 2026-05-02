@@ -19,8 +19,10 @@ import {
   PlusCircle,
   Bell,
   Heart,
-  Trophy
+  Trophy,
+  ChevronRight
 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,7 +56,7 @@ export function Navbar() {
     };
     getUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       setUser(session?.user ?? null);
     });
 
