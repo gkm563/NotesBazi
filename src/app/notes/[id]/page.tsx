@@ -89,13 +89,23 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
                   <ReportButton noteId={id} noteTitle={note.title} />
                 </div>
               </div>
-              <div className="flex-grow bg-slate-100 dark:bg-[#0B1120] relative group">
-                  {/* Enhanced File Viewer with Mobile Optimization */}
-                  <iframe 
-                    src={`https://docs.google.com/viewer?url=${encodeURIComponent(note.file_url)}&embedded=true`} 
-                    className="absolute inset-0 w-full h-full border-none z-10"
-                    title={note.title}
-                  />
+              <div className="flex-grow bg-slate-100 dark:bg-[#0B1120] relative group overflow-auto">
+                  {/* Enhanced File Viewer with Image Support */}
+                  {note.file_url.match(/\.(jpg|jpeg|png|gif|webp)$|^data:image\//i) ? (
+                    <div className="absolute inset-0 flex items-center justify-center p-4">
+                      <img 
+                        src={note.file_url} 
+                        alt={note.title} 
+                        className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+                      />
+                    </div>
+                  ) : (
+                    <iframe 
+                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(note.file_url)}&embedded=true`} 
+                      className="absolute inset-0 w-full h-full border-none z-10"
+                      title={note.title}
+                    />
+                  )}
                   
                   {/* Mobile-friendly Overlay for problematic viewers */}
                   <div className="absolute inset-0 flex items-center justify-center bg-slate-900/10 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none md:pointer-events-auto">

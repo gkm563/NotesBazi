@@ -70,12 +70,15 @@ export default function UploadPage() {
         "application/msword", 
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "application/vnd.ms-powerpoint",
-        "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "image/jpeg",
+        "image/png",
+        "image/webp"
       ];
 
       if (allowedTypes.includes(selected.type)) {
         setFile(selected);
-        if (selected.type === "application/pdf") {
+        if (selected.type === "application/pdf" || selected.type.startsWith("image/")) {
           const url = URL.createObjectURL(selected);
           setPreviewUrl(url);
         } else {
@@ -85,7 +88,7 @@ export default function UploadPage() {
         const cleanName = selected.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
         setMetadata(prev => ({ ...prev, title: cleanName }));
       } else {
-        toast.error("Invalid file type. Please upload PDF, DOCX, or PPTX.");
+        toast.error("Invalid file type. Please upload PDF, DOCX, PPTX, or Images.");
       }
     }
   };
@@ -225,7 +228,7 @@ export default function UploadPage() {
                       >
                         <input
                           type="file"
-                          accept=".pdf,.doc,.docx,.ppt,.pptx"
+                          accept=".pdf,.doc,.docx,.ppt,.pptx,image/*"
                           onChange={handleFileChange}
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         />
@@ -233,7 +236,7 @@ export default function UploadPage() {
                           <Upload size={48} />
                         </div>
                         <h4 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Click or Drag & Drop</h4>
-                        <p className="text-slate-500 font-bold">PDF, Word, or PowerPoint (Max 15MB)</p>
+                        <p className="text-slate-500 font-bold">PDF, Word, PPT or Images (Max 15MB)</p>
                       </motion.div>
                     ) : (
                       <motion.div 
@@ -243,7 +246,16 @@ export default function UploadPage() {
                         <div className="flex flex-col md:flex-row gap-10">
                           <div className="w-full md:w-56 h-72 bg-white dark:bg-slate-900 rounded-3xl border-4 border-white dark:border-slate-700 overflow-hidden shadow-2xl flex items-center justify-center relative group">
                             {previewUrl ? (
-                              <iframe src={`${previewUrl}#toolbar=0`} className="w-full h-full pointer-events-none" />
+                              file.type.startsWith("image/") ? (
+                                <img src={previewUrl} alt="Preview" className="w-full h-full object-contain p-2" />
+                              ) : file.type === "application/pdf" ? (
+                                <iframe src={`${previewUrl}#toolbar=0`} className="w-full h-full pointer-events-none" />
+                              ) : (
+                                <div className="flex flex-col items-center gap-4">
+                                  <FileText size={72} className="text-indigo-600" />
+                                  <Badge className="bg-indigo-600 text-white font-black uppercase">{file.name.split('.').pop()}</Badge>
+                                </div>
+                              )
                             ) : (
                               <div className="flex flex-col items-center gap-4">
                                 <FileText size={72} className="text-indigo-600" />
