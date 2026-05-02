@@ -89,8 +89,8 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
                   <ReportButton noteId={id} noteTitle={note.title} />
                 </div>
               </div>
-              <div className="flex-grow bg-slate-100 dark:bg-[#0B1120] relative group overflow-auto">
-                  {/* Enhanced File Viewer with Image Support */}
+              <div className="flex-grow bg-slate-100 dark:bg-[#0B1120] relative group overflow-hidden">
+                  {/* Enhanced File Viewer with Native PDF and Image Support */}
                   {note.file_url.match(/\.(jpg|jpeg|png|gif|webp)$|^data:image\//i) ? (
                     <div className="absolute inset-0 flex items-center justify-center p-4">
                       <img 
@@ -99,6 +99,12 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
                         className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
                       />
                     </div>
+                  ) : note.file_url.toLowerCase().includes(".pdf") ? (
+                    <iframe 
+                      src={`${note.file_url}#toolbar=0&navpanes=0`} 
+                      className="absolute inset-0 w-full h-full border-none z-10"
+                      title={note.title}
+                    />
                   ) : (
                     <iframe 
                       src={`https://docs.google.com/viewer?url=${encodeURIComponent(note.file_url)}&embedded=true`} 
@@ -106,18 +112,6 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
                       title={note.title}
                     />
                   )}
-                  
-                  {/* Mobile-friendly Overlay for problematic viewers */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-slate-900/10 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none md:pointer-events-auto">
-                    <Button 
-                      asChild
-                      className="pointer-events-auto rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-xl font-bold"
-                    >
-                      <a href={note.file_url} target="_blank" rel="noopener noreferrer">
-                        Open in Full Screen
-                      </a>
-                    </Button>
-                  </div>
               </div>
             </div>
           </AnimatedSection>
