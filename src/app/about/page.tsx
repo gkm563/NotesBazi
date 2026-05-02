@@ -54,16 +54,22 @@ export default function AboutPage() {
       {/* Meet the Developer */}
       <section className="py-20 bg-slate-50 dark:bg-slate-800/30">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <Heart className="h-12 w-12 text-red-500 mx-auto mb-6 animate-pulse" />
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">Built with Passion</h2>
-          <p className="text-lg text-slate-600 dark:text-slate-400 mb-8">
-            NotesBazi was designed and developed with the goal of making academic life a little easier for every student at UIT Prayagraj. 
-            We hope this platform helps you excel in your studies!
+          <div className="h-24 w-24 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-3xl font-black shadow-xl shadow-indigo-500/20">GKM</div>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-2">Gautam Kumar Maurya</h2>
+          <p className="text-indigo-600 font-bold uppercase tracking-widest text-sm mb-6">Founder & Lead Developer</p>
+          <p className="text-lg text-slate-600 dark:text-slate-400 mb-10 leading-relaxed">
+            NotesBazi was designed and developed with the goal of making academic life easier for every student at <span className="font-bold text-slate-900 dark:text-white">United Institute of Technology (UIT)</span>. 
+            As a fellow student, I understand the struggle of finding quality notes, and this platform is my contribution to our institution's growth and shared success.
           </p>
-          <div className="flex justify-center gap-4">
-            <div className="h-1 bg-indigo-600 w-24 rounded-full" />
-            <div className="h-1 bg-violet-600 w-24 rounded-full" />
-            <div className="h-1 bg-pink-600 w-24 rounded-full" />
+          <div className="flex justify-center">
+            <a 
+              href="https://www.linkedin.com/in/gkm563" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-[#0077b5] text-white rounded-2xl font-black shadow-lg hover:scale-105 active:scale-95 transition-all"
+            >
+              Connect on LinkedIn
+            </a>
           </div>
         </div>
       </section>

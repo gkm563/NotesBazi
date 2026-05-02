@@ -74,7 +74,7 @@ export function Navbar() {
   };
 
   const navLinks = [
-    { name: "Explore", href: "/notes" },
+    { name: "Explore Notes", href: "/notes" },
     { name: "Leaderboard", href: "/leaderboard" },
     { name: "Community", href: "/about" },
     { name: "Contact", href: "/contact" },
