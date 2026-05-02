@@ -23,6 +23,7 @@ import { NoteActions } from "@/components/note-actions";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/ui/animated-section";
 import { ViewCounter } from "@/components/view-counter";
 import { ReportButton } from "@/components/report-button";
+import { NoteViewer } from "@/components/note-viewer";
 import { cn } from "@/lib/utils";
 export default async function NoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -90,28 +91,7 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
                 </div>
               </div>
               <div className="flex-grow bg-slate-100 dark:bg-[#0B1120] relative group overflow-hidden">
-                  {/* Enhanced File Viewer with Native PDF and Image Support */}
-                  {note.file_url.match(/\.(jpg|jpeg|png|gif|webp)$|^data:image\//i) ? (
-                    <div className="absolute inset-0 flex items-center justify-center p-4">
-                      <img 
-                        src={note.file_url} 
-                        alt={note.title} 
-                        className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
-                      />
-                    </div>
-                  ) : note.file_url.toLowerCase().includes(".pdf") ? (
-                    <iframe 
-                      src={`${note.file_url}#toolbar=0&navpanes=0`} 
-                      className="absolute inset-0 w-full h-full border-none z-10"
-                      title={note.title}
-                    />
-                  ) : (
-                    <iframe 
-                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(note.file_url)}&embedded=true`} 
-                      className="absolute inset-0 w-full h-full border-none z-10"
-                      title={note.title}
-                    />
-                  )}
+                <NoteViewer fileUrl={note.file_url} title={note.title} />
               </div>
             </div>
           </AnimatedSection>
