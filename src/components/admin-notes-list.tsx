@@ -232,7 +232,7 @@ export function AdminNotesList({ initialNotes }: AdminNotesListProps) {
                <div className="flex flex-wrap justify-center lg:justify-start items-center gap-4 text-sm font-bold text-slate-400">
                   <div className="flex items-center gap-1.5">
                     <User size={14} className="text-indigo-500" /> 
-                    @{note.profiles?.username || "community"}
+                    {note.profiles?.username ? `@${note.profiles.username}` : "NotesBazi"}
                   </div>
                   <div className="flex items-center gap-1.5"><Calendar size={14} /> {note.created_at ? new Date(note.created_at).toISOString().split('T')[0] : "N/A"}</div>
                   <div className="flex items-center gap-1.5"><Download size={14} className="text-emerald-500" /> {note.downloads || 0} Downloads</div>
