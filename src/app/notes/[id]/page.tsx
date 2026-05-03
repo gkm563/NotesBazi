@@ -28,16 +28,24 @@ import { cn } from "@/lib/utils";
 export default async function NoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
+  
+  // Fetch main note
   const { data: note, error } = await supabase
     .from("notes")
     .select("*")
     .eq("id", id)
     .single();
 
-  if (note && note.uploaded_by) {
+  if (error || !note) {
+    console.error("Note Fetch Error:", error);
+    return notFound();
+  }
+
+  // Fetch profile if uploader exists
+  if (note.uploaded_by) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("name, department, role")
+      .select("name, department, role, username")
       .eq("id", note.uploaded_by)
       .single();
     if (profile) {
@@ -45,20 +53,22 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
     }
   }
 
-  if (error || !note) {
-    return notFound();
-  }
-
   let aiSummary = note.summary;
   let aiKeywords = note.keywords || [];
 
-  // Fetch similar notes (same subject or year, excluding current)
-  const { data: similarNotes } = await supabase
-    .from("notes")
-    .select("id, title, subject, year, downloads, file_url, type")
-    .neq("id", id)
-    .or(`subject.eq."${note.subject}",year.eq."${note.year}"`)
-    .limit(4);
+  // Fetch similar notes with a safer query
+  let similarNotes: any[] = [];
+  try {
+    const { data } = await supabase
+      .from("notes")
+      .select("id, title, subject, year, downloads, file_url, type")
+      .neq("id", id)
+      .or(`subject.eq."${note.subject}",year.eq."${note.year}"`)
+      .limit(4);
+    similarNotes = data || [];
+  } catch (err) {
+    console.error("Similar Notes Fetch Error:", err);
+  }
 
   return (
     <main className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] transition-colors pb-24">
