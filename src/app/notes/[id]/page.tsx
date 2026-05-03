@@ -25,6 +25,8 @@ import { ViewCounter } from "@/components/view-counter";
 import { ReportButton } from "@/components/report-button";
 import { NoteViewer } from "@/components/note-viewer";
 import { cn } from "@/lib/utils";
+import { ShareButton } from "@/components/share-button";
+
 export default async function NoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
@@ -111,9 +113,7 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
                   <span className="font-black text-slate-900 dark:text-white truncate text-sm md:text-base">{note.title}</span>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
-                  <Button variant="outline" size="sm" className="hidden sm:flex rounded-xl border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
-                     <Share2 size={16} className="mr-2" /> Share
-                  </Button>
+                  <ShareButton className="hidden sm:flex" />
                   <ReportButton noteId={id} noteTitle={note.title} />
                 </div>
               </div>
@@ -139,22 +139,46 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
               <h1 className="text-3xl font-black text-slate-900 dark:text-white leading-tight mb-3">{note.title}</h1>
               <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest text-sm mb-8">{note.subject}</p>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-6 border-y border-slate-100 dark:border-slate-800 mb-8">
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
-                  <p className="text-xs text-slate-400 font-extrabold uppercase tracking-widest mb-1">Academic Year</p>
-                  <p className="text-xl font-black text-slate-700 dark:text-slate-200">{note.year} Year</p>
+              {/* Enhanced Stats Grid */}
+              <div className="grid grid-cols-2 gap-3 py-6 border-y border-slate-100 dark:border-slate-800 mb-8">
+                <div className="bg-slate-50/80 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/30 flex flex-col gap-1 transition-all hover:bg-white dark:hover:bg-slate-800 shadow-sm">
+                   <div className="flex items-center gap-2 mb-1">
+                      <div className="p-1.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
+                         <Calendar size={14} />
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Year</p>
+                   </div>
+                   <p className="text-lg font-black text-slate-700 dark:text-slate-200">{note.year} Year</p>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
-                  <p className="text-xs text-slate-400 font-extrabold uppercase tracking-widest mb-1">Semester</p>
-                  <p className="text-xl font-black text-slate-700 dark:text-slate-200">{note.semester || "N/A"}</p>
+                
+                <div className="bg-slate-50/80 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/30 flex flex-col gap-1 transition-all hover:bg-white dark:hover:bg-slate-800 shadow-sm">
+                   <div className="flex items-center gap-2 mb-1">
+                      <div className="p-1.5 bg-violet-50 dark:bg-violet-900/30 rounded-lg text-violet-600 dark:text-violet-400">
+                         <Layers size={14} />
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Sem</p>
+                   </div>
+                   <p className="text-lg font-black text-slate-700 dark:text-slate-200">{note.semester || "N/A"}</p>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
-                  <p className="text-xs text-slate-400 font-extrabold uppercase tracking-widest mb-1">Total Views</p>
-                  <p className="text-xl font-black text-indigo-600 dark:text-indigo-400">{note.views || 0}</p>
+
+                <div className="bg-slate-50/80 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/30 flex flex-col gap-1 transition-all hover:bg-white dark:hover:bg-slate-800 shadow-sm">
+                   <div className="flex items-center gap-2 mb-1">
+                      <div className="p-1.5 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
+                         <Eye size={14} />
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Views</p>
+                   </div>
+                   <p className="text-lg font-black text-slate-700 dark:text-slate-200">{note.views || 0}</p>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
-                  <p className="text-xs text-slate-400 font-extrabold uppercase tracking-widest mb-1">Downloads</p>
-                  <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{note.downloads || 0}</p>
+
+                <div className="bg-slate-50/80 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/30 flex flex-col gap-1 transition-all hover:bg-white dark:hover:bg-slate-800 shadow-sm">
+                   <div className="flex items-center gap-2 mb-1">
+                      <div className="p-1.5 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400">
+                         <Download size={14} />
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Downloads</p>
+                   </div>
+                   <p className="text-lg font-black text-slate-700 dark:text-slate-200">{note.downloads || 0}</p>
                 </div>
               </div>
 
