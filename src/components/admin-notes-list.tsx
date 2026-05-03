@@ -30,6 +30,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AdminNoteActions } from "@/components/admin-note-actions";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -45,6 +46,7 @@ interface AdminNotesListProps {
 }
 
 export function AdminNotesList({ initialNotes }: AdminNotesListProps) {
+  const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
 
@@ -70,6 +72,7 @@ export function AdminNotesList({ initialNotes }: AdminNotesListProps) {
       if (res.success) {
         toast.success(`${selectedIds.length} resources deleted.`);
         setSelectedIds([]);
+        router.refresh();
       } else throw new Error(res.error);
     } catch (err: any) {
       toast.error(err.message || "Bulk delete failed");
@@ -85,6 +88,7 @@ export function AdminNotesList({ initialNotes }: AdminNotesListProps) {
       if (res.success) {
         toast.success(`${selectedIds.length} resources updated.`);
         setSelectedIds([]);
+        router.refresh();
       } else throw new Error(res.error);
     } catch (err: any) {
       toast.error(err.message || "Bulk verify failed");
@@ -93,13 +97,14 @@ export function AdminNotesList({ initialNotes }: AdminNotesListProps) {
     }
   };
 
-  const handleBulkUpdate = async (details: { year?: string; semester?: number }) => {
+  const handleBulkUpdate = async (details: { year?: string; semester?: number; type?: string }) => {
     setLoading('update');
     try {
       const res = await bulkUpdateDetailsByAdmin(selectedIds, details);
       if (res.success) {
         toast.success(`Updated ${selectedIds.length} resources.`);
         setSelectedIds([]);
+        router.refresh();
       } else throw new Error(res.error);
     } catch (err: any) {
       toast.error(err.message || "Bulk update failed");
@@ -127,28 +132,57 @@ export function AdminNotesList({ initialNotes }: AdminNotesListProps) {
             </div>
 
             <div className="flex items-center gap-4">
-               <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                     <Button variant="ghost" className="h-12 rounded-2xl font-bold hover:bg-slate-800 flex gap-2">
-                        <Zap size={18} className="text-amber-400" /> Bulk Update Details
-                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="rounded-2xl p-2 w-56">
-                     <DropdownMenuLabel>Change Year</DropdownMenuLabel>
-                     {["1st", "2nd", "3rd", "4th"].map(y => (
-                       <DropdownMenuItem key={y} onClick={() => handleBulkUpdate({ year: y })} className="rounded-xl font-bold">
-                          Set to {y} Year
-                       </DropdownMenuItem>
-                     ))}
-                     <DropdownMenuSeparator />
-                     <DropdownMenuLabel>Change Semester</DropdownMenuLabel>
-                     {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
-                       <DropdownMenuItem key={s} onClick={() => handleBulkUpdate({ semester: s })} className="rounded-xl font-bold">
-                          Set to Semester {s}
-                       </DropdownMenuItem>
-                     ))}
-                  </DropdownMenuContent>
-               </DropdownMenu>
+                <DropdownMenu>
+                   <DropdownMenuTrigger asChild>
+                      <Button 
+                        disabled={!!loading}
+                        variant="ghost" 
+                        className="h-12 rounded-2xl font-bold hover:bg-slate-800 flex gap-2"
+                      >
+                         {loading === 'update' ? <Loader className="animate-spin" size={18} /> : <Zap size={18} className="text-amber-400" />}
+                         Bulk Update Details
+                      </Button>
+                   </DropdownMenuTrigger>
+                   <DropdownMenuContent className="rounded-2xl p-2 w-64 bg-slate-900 border-slate-800 text-white">
+                      <div className="px-2 py-1.5 text-xs font-black text-slate-500 uppercase tracking-widest">Metadata Actions</div>
+                      
+                      <DropdownMenuSeparator className="bg-slate-800" />
+                      
+                      <DropdownMenuLabel className="text-slate-400">Academic Year</DropdownMenuLabel>
+                      <div className="grid grid-cols-2 gap-1 p-1">
+                        {["1st", "2nd", "3rd", "4th"].map(y => (
+                          <DropdownMenuItem key={y} onClick={() => handleBulkUpdate({ year: y })} className="rounded-xl font-bold focus:bg-indigo-600 focus:text-white cursor-pointer justify-center py-2 border border-slate-800">
+                             {y} Year
+                          </DropdownMenuItem>
+                        ))}
+                      </div>
+
+                      <DropdownMenuSeparator className="bg-slate-800" />
+                      
+                      <DropdownMenuLabel className="text-slate-400">Semester</DropdownMenuLabel>
+                      <div className="grid grid-cols-4 gap-1 p-1">
+                        {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
+                          <DropdownMenuItem key={s} onClick={() => handleBulkUpdate({ semester: s })} className="rounded-xl font-bold focus:bg-indigo-600 focus:text-white cursor-pointer justify-center py-2 border border-slate-800">
+                             {s}
+                          </DropdownMenuItem>
+                        ))}
+                      </div>
+
+                      <DropdownMenuSeparator className="bg-slate-800" />
+                      
+                      <DropdownMenuLabel className="text-slate-400">Resource Type</DropdownMenuLabel>
+                      <div className="max-h-[200px] overflow-y-auto custom-scrollbar p-1 space-y-1">
+                        {[
+                          "Notes", "Assignment", "PYQ", "Lab Manual", 
+                          "Syllabus", "Sessional Paper", "Test Paper", "Semester Paper", "Remedial Paper"
+                        ].map(t => (
+                          <DropdownMenuItem key={t} onClick={() => handleBulkUpdate({ type: t })} className="rounded-xl font-bold focus:bg-indigo-600 focus:text-white cursor-pointer px-3 py-2 border border-slate-800">
+                             {t}
+                          </DropdownMenuItem>
+                        ))}
+                      </div>
+                   </DropdownMenuContent>
+                </DropdownMenu>
 
                <Button 
                 variant="ghost" 

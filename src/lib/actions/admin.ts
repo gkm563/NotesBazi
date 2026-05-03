@@ -209,6 +209,7 @@ export async function bulkVerifyResourcesAction(noteIds: string[], status: boole
 export async function bulkUpdateDetailsByAdmin(noteIds: string[], details: {
   year?: string;
   semester?: number;
+  type?: string;
 }) {
   const supabase = createAdminClient()
   
