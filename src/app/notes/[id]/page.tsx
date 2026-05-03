@@ -211,22 +211,30 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
                  <StaggerItem key={item.id}>
                     <Link href={`/notes/${item.id}`} className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200/60 dark:border-slate-800 overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-2 transition-all group flex flex-col h-full shadow-sm">
                        {/* Thumbnail / Preview Area */}
-                       <div className="h-40 w-full bg-slate-50 dark:bg-slate-800 relative overflow-hidden flex items-center justify-center">
+                       <div className="h-44 w-full bg-slate-100 dark:bg-slate-800 relative overflow-hidden flex items-center justify-center">
                           <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-30 z-0" />
+                          
                           {item.file_url?.toLowerCase().endsWith('.pdf') ? (
-                            <div className="absolute inset-0 z-0 opacity-50 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute inset-0 z-0 bg-white">
                               <iframe 
                                 src={`${item.file_url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-                                className="w-[200%] h-[400px] border-none pointer-events-none scale-50 origin-top-left"
+                                className="w-[200%] h-[600px] border-none pointer-events-none scale-50 origin-top-left opacity-80 group-hover:opacity-100 transition-opacity"
                                 tabIndex={-1}
                                 loading="lazy"
                               />
+                              {/* Glassy overlay to prevent iframe interaction and add depth */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-transparent dark:from-slate-900/40 z-10" />
                             </div>
                           ) : (
-                            <FileText size={40} className="text-indigo-400 relative z-10" />
+                            <div className="relative z-10 flex flex-col items-center gap-2">
+                               <FileText size={48} className="text-indigo-400 dark:text-indigo-500 drop-shadow-sm" />
+                               <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{item.type || "FILE"}</span>
+                            </div>
                           )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10" />
-                          <Badge className="absolute top-4 right-4 bg-white/90 dark:bg-slate-900/90 text-indigo-600 dark:text-indigo-400 border-none rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm">
+                          
+                          <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors z-20" />
+                          
+                          <Badge className="absolute top-4 right-4 bg-indigo-600 text-white border-none rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg z-30">
                              {item.type || "Resource"}
                           </Badge>
                        </div>
