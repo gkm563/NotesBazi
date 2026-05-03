@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { AdminNoteActions } from "@/components/admin-note-actions";
+import { AdminNotesList } from "@/components/admin-notes-list";
 import { cn } from "@/lib/utils";
 
 export default async function NotesManagement() {
@@ -115,54 +116,14 @@ export default async function NotesManagement() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6">
-        {notes?.map((note) => (
-          <div key={note.id} className="group relative bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/40 dark:shadow-none rounded-[2rem] border border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-900/50 transition-all p-6 flex flex-col lg:flex-row gap-8 items-center">
-            
-            {/* Note Preview Icon */}
-            <div className="h-24 w-24 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center flex-shrink-0 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/20 transition-colors">
-               <FileText size={40} className="text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" />
-            </div>
-
-            {/* Info */}
-            <div className="flex-grow space-y-3 text-center lg:text-left min-w-0">
-               <div className="flex flex-wrap justify-center lg:justify-start gap-3">
-                  <Badge className="bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 border-none font-black">{note.subject}</Badge>
-                  <Badge variant="outline" className="rounded-lg font-bold">{note.type}</Badge>
-                  {note.is_verified && (
-                    <Badge className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border-none font-black flex gap-1">
-                       <CheckCircle size={12} /> Verified
-                    </Badge>
-                  )}
-               </div>
-               <h3 className="text-xl font-black text-slate-900 dark:text-white truncate pr-4">{note.title}</h3>
-               <div className="flex flex-wrap justify-center lg:justify-start items-center gap-4 text-sm font-bold text-slate-400">
-                  <div className="flex items-center gap-1.5">
-                    <User size={14} className="text-indigo-500" /> 
-                    @{note.profiles?.username || note.profiles?.full_name?.toLowerCase().replace(' ', '_') || "community"}
-                  </div>
-                  <div className="flex items-center gap-1.5" suppressHydrationWarning><Calendar size={14} /> {note.created_at ? new Date(note.created_at).toISOString().split('T')[0] : "N/A"}</div>
-                  <div className="flex items-center gap-1.5"><Download size={14} className="text-emerald-500" /> {note.downloads || 0} Downloads</div>
-                  <div className="flex items-center gap-1.5"><Star size={14} className="text-amber-500 fill-amber-500" /> {note.average_rating || 0} Rating</div>
-               </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3 lg:border-l lg:border-slate-100 lg:dark:border-slate-800 lg:pl-8">
-               <AdminNoteActions note={note} />
-               <Link href={`/notes/${note.id}`} className="inline-flex items-center justify-center rounded-2xl h-12 px-6 bg-slate-900 dark:bg-slate-800 text-white font-bold hover:bg-indigo-600 transition-all">
-                  View Resource
-               </Link>
-            </div>
-          </div>
-        ))}
-        {notes?.length === 0 && !error && (
-          <div className="p-20 bg-white dark:bg-slate-900 rounded-[3rem] text-center border-2 border-dashed border-slate-200 dark:border-slate-800">
-             <FileText size={48} className="mx-auto text-slate-200 mb-4" />
-             <p className="text-slate-500 font-bold">No resources have been uploaded yet.</p>
-          </div>
-        )}
-      </div>
+      <AdminNotesList initialNotes={notes} />
+      
+      {notes?.length === 0 && !error && (
+        <div className="p-20 bg-white dark:bg-slate-900 rounded-[3rem] text-center border-2 border-dashed border-slate-200 dark:border-slate-800">
+           <FileText size={48} className="mx-auto text-slate-200 mb-4" />
+           <p className="text-slate-500 font-bold">No resources have been uploaded yet.</p>
+        </div>
+      )}
     </div>
   );
 }

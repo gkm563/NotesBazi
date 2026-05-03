@@ -153,3 +153,76 @@ export async function updateResourceByAdmin(noteId: string, formData: {
   revalidatePath(`/notes/${noteId}`)
   return { success: true }
 }
+
+export async function bulkDeleteResourcesByAdmin(noteIds: string[]) {
+  const supabase = createAdminClient()
+  
+  // 1. Fetch all notes to get file URLs
+  const { data: notes } = await supabase
+    .from('notes')
+    .select('file_url')
+    .in('id', noteIds)
+
+  const filePaths = notes?.map(n => {
+    const parts = n.file_url.split('/notes/')
+    return parts.length > 1 ? parts[1] : null
+  }).filter(Boolean) as string[]
+
+  if (filePaths.length > 0) {
+    await supabase.storage.from('notes').remove(filePaths)
+  }
+
+  // 2. Delete from DB
+  const { error } = await supabase
+    .from('notes')
+    .delete()
+    .in('id', noteIds)
+
+  if (error) {
+    console.error('Bulk delete error:', error)
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath('/admin/notes')
+  revalidatePath('/notes')
+  return { success: true }
+}
+
+export async function bulkVerifyResourcesAction(noteIds: string[], status: boolean) {
+  const supabase = createAdminClient()
+  
+  const { error } = await supabase
+    .from('notes')
+    .update({ is_verified: status })
+    .in('id', noteIds)
+
+  if (error) {
+    console.error('Bulk verify error:', error)
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath('/admin/notes')
+  revalidatePath('/notes')
+  return { success: true }
+}
+
+export async function bulkUpdateDetailsByAdmin(noteIds: string[], details: {
+  year?: string;
+  semester?: number;
+}) {
+  const supabase = createAdminClient()
+  
+  const { error } = await supabase
+    .from('notes')
+    .update(details)
+    .in('id', noteIds)
+
+  if (error) {
+    console.error('Bulk update details error:', error)
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath('/admin/notes')
+  revalidatePath('/notes')
+  return { success: true }
+}
