@@ -393,6 +393,22 @@ export default function UploadPage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div className="space-y-6">
+                      <Label className="text-sm font-black uppercase tracking-widest text-slate-400">Academic Year</Label>
+                      <div className="grid grid-cols-4 gap-3">
+                        {[1, 2, 3, 4].map((y) => (
+                          <button
+                            key={y}
+                            type="button"
+                            onClick={() => setMetadata({...metadata, year: y.toString()})}
+                            className={cn(
+                              "py-4 rounded-2xl font-black text-sm transition-all border-2",
+                              metadata.year === y.toString() 
+                                ? "bg-indigo-500 text-white border-indigo-500 shadow-lg shadow-indigo-500/20" 
+                                : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-100 dark:border-slate-700 hover:border-indigo-400"
+                            )}
+                          >
+                            {y}
                           </button>
                         ))}
                       </div>
