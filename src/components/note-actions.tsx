@@ -13,6 +13,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+
 
 interface NoteActionsProps {
   noteId: string;
@@ -24,7 +26,9 @@ export function NoteActions({ noteId, fileUrl }: NoteActionsProps) {
   const [loading, setLoading] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [userRating, setUserRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
   const [user, setUser] = useState<any>(null);
+
 
   useEffect(() => {
     const checkState = async () => {
@@ -165,30 +169,63 @@ export function NoteActions({ noteId, fileUrl }: NoteActionsProps) {
         </div>
       </div>
 
-      <div className="flex flex-col items-center gap-3 p-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border-2 border-slate-100 dark:border-slate-800 shadow-inner">
-        <div className="flex items-center gap-2 mb-1">
-           <Star size={14} className="text-amber-500 fill-amber-500" />
-           <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Rate this Resource</p>
+      <div className="flex flex-col items-center gap-4 p-8 bg-white dark:bg-slate-900/50 rounded-[2rem] border-2 border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/20 dark:shadow-none transition-all hover:border-indigo-200 dark:hover:border-indigo-900/50">
+        <div className="flex flex-col items-center gap-1">
+           <div className="flex items-center gap-2">
+              <Star size={14} className="text-amber-500 fill-amber-500 animate-pulse" />
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Share your experience</p>
+           </div>
+           <h4 className="text-lg font-black text-slate-900 dark:text-white">Rate this Resource</h4>
         </div>
-        <div className="flex gap-2">
+
+        <div 
+          className="flex gap-1"
+          onMouseLeave={() => setHoverRating(0)}
+        >
           {[1, 2, 3, 4, 5].map((star) => (
-            <button 
+            <motion.button 
               key={star} 
               onClick={() => handleRate(star)}
-              className="p-1 hover:scale-125 transition-transform duration-200"
+              onMouseEnter={() => setHoverRating(star)}
+              whileHover={{ scale: 1.2, rotate: 15 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-1 outline-none focus:ring-0"
             >
               <Star 
-                size={32} 
-                fill={star <= userRating ? "currentColor" : "none"} 
+                size={40} 
+                fill={(hoverRating || userRating) >= star ? "currentColor" : "none"} 
+                strokeWidth={1.5}
                 className={cn(
-                  "transition-colors",
-                  star <= userRating ? "text-amber-500" : "text-slate-200 dark:text-slate-700 hover:text-amber-200"
+                  "transition-all duration-300 drop-shadow-sm",
+                  (hoverRating || userRating) >= star 
+                    ? "text-amber-500 fill-amber-500" 
+                    : "text-slate-300 dark:text-slate-700"
                 )} 
               />
-            </button>
+            </motion.button>
           ))}
         </div>
-        {userRating > 0 && <p className="text-xs font-bold text-indigo-600 mt-2">You rated this {userRating}/5</p>}
+        
+        <AnimatePresence mode="wait">
+          {userRating > 0 ? (
+            <motion.p 
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              className="text-xs font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 px-4 py-1.5 rounded-full"
+            >
+              You've rated this {userRating}/5 stars!
+            </motion.p>
+          ) : (
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-[10px] font-bold text-slate-400 italic"
+            >
+              Click a star to submit your rating
+            </motion.p>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
