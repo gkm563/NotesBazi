@@ -120,3 +120,36 @@ export async function verifyResourceAction(noteId: string, currentStatus: boolea
   revalidatePath('/notes')
   return { success: true }
 }
+
+export async function updateResourceByAdmin(noteId: string, formData: {
+  title: string;
+  subject: string;
+  year: string;
+  semester: number;
+  type: string;
+  description: string;
+}) {
+  const supabase = createAdminClient()
+  
+  const { error } = await supabase
+    .from('notes')
+    .update({
+      title: formData.title,
+      subject: formData.subject,
+      year: formData.year,
+      semester: formData.semester,
+      type: formData.type,
+      description: formData.description,
+    })
+    .eq('id', noteId)
+
+  if (error) {
+    console.error('Error updating note as admin:', error)
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath('/admin/notes')
+  revalidatePath('/notes')
+  revalidatePath(`/notes/${noteId}`)
+  return { success: true }
+}

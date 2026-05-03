@@ -149,7 +149,7 @@ export default async function NotesManagement() {
 
             {/* Actions */}
             <div className="flex gap-3 lg:border-l lg:border-slate-100 lg:dark:border-slate-800 lg:pl-8">
-               <AdminNoteActions noteId={note.id} isVerified={!!note.is_verified} />
+               <AdminNoteActions note={note} />
                <Link href={`/notes/${note.id}`} className="inline-flex items-center justify-center rounded-2xl h-12 px-6 bg-slate-900 dark:bg-slate-800 text-white font-bold hover:bg-indigo-600 transition-all">
                   View Resource
                </Link>

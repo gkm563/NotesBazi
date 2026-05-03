@@ -7,19 +7,21 @@ import { toast } from "sonner";
 import { deleteResourceByAdmin, verifyResourceAction } from "@/lib/actions/admin";
 import { cn } from "@/lib/utils";
 
+import { AdminEditModal } from "@/components/admin-edit-modal";
+
 interface AdminNoteActionsProps {
-  noteId: string;
-  isVerified: boolean;
+  note: any;
 }
 
-export function AdminNoteActions({ noteId, isVerified }: AdminNoteActionsProps) {
+export function AdminNoteActions({ note }: AdminNoteActionsProps) {
   const [loading, setLoading] = useState<string | null>(null);
+  const isVerified = !!note.is_verified;
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to permanently delete this resource?")) return;
     setLoading('delete');
     try {
-      const res = await deleteResourceByAdmin(noteId);
+      const res = await deleteResourceByAdmin(note.id);
       if (res.success) toast.success("Resource deleted successfully.");
       else throw new Error(res.error);
     } catch (error: any) {
@@ -32,7 +34,7 @@ export function AdminNoteActions({ noteId, isVerified }: AdminNoteActionsProps) 
   const handleVerify = async () => {
     setLoading('verify');
     try {
-      const res = await verifyResourceAction(noteId, isVerified);
+      const res = await verifyResourceAction(note.id, isVerified);
       if (res.success) toast.success(isVerified ? "Verification removed." : "Resource verified!");
       else throw new Error(res.error);
     } catch (error: any) {
@@ -44,6 +46,8 @@ export function AdminNoteActions({ noteId, isVerified }: AdminNoteActionsProps) 
 
   return (
     <div className="flex gap-3">
+      <AdminEditModal note={note} />
+      
       <Button 
         variant="outline" 
         onClick={handleVerify}
