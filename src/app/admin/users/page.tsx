@@ -20,18 +20,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 interface PageProps {
-  searchParams: {
+  searchParams: Promise<{
     sort?: string;
     order?: 'asc' | 'desc';
     q?: string;
-  }
+  }>
 }
 
 export default async function UserManagement({ searchParams }: PageProps) {
+  const params = await searchParams;
   const supabase = await createClient();
-  const sort = searchParams.sort || 'created_at';
-  const order = searchParams.order || 'desc';
-  const query = searchParams.q || '';
+  const sort = params.sort || 'created_at';
+  const order = params.order || 'desc';
+  const query = params.q || '';
 
   // 1. Prepare Queries
   let dbQuery = supabase.from("profiles").select("*");
