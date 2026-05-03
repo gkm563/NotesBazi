@@ -14,7 +14,7 @@ import {
   Sparkles,
   ChevronRight,
   Clock,
-  Layers
+  FileStack
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -155,7 +155,7 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
                 <div className="bg-slate-50/80 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/30 flex flex-col gap-1 transition-all hover:bg-white dark:hover:bg-slate-800 shadow-sm">
                    <div className="flex items-center gap-2 mb-1">
                       <div className="p-1.5 bg-violet-50 dark:bg-violet-900/30 rounded-lg text-violet-600 dark:text-violet-400">
-                         <Layers size={14} />
+                         <FileStack size={14} />
                       </div>
                       <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Sem</p>
                    </div>
