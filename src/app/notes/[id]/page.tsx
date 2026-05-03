@@ -56,16 +56,33 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
   let aiSummary = note.summary;
   let aiKeywords = note.keywords || [];
 
-  // Fetch similar notes with a safer query
+  // Fetch similar notes (same subject or year, excluding current)
   let similarNotes: any[] = [];
   try {
-    const { data } = await supabase
+    const { data: primaryRecs } = await supabase
       .from("notes")
       .select("id, title, subject, year, downloads, file_url, type")
       .neq("id", id)
       .or(`subject.eq."${note.subject}",year.eq."${note.year}"`)
-      .limit(4);
-    similarNotes = data || [];
+      .order("views", { ascending: false })
+      .limit(8);
+    
+    similarNotes = primaryRecs || [];
+
+    // If we have fewer than 4 recommendations, fetch more from the same year to keep the student engaged
+    if (similarNotes.length < 4) {
+      const { data: fallbackRecs } = await supabase
+        .from("notes")
+        .select("id, title, subject, year, downloads, file_url, type")
+        .neq("id", id)
+        .eq("year", note.year)
+        .order("downloads", { ascending: false })
+        .limit(8);
+      
+      const existingIds = new Set(similarNotes.map(n => n.id));
+      const filteredFallbacks = (fallbackRecs || []).filter(n => !existingIds.has(n.id));
+      similarNotes = [...similarNotes, ...filteredFallbacks].slice(0, 8);
+    }
   } catch (err) {
     console.error("Similar Notes Fetch Error:", err);
   }
