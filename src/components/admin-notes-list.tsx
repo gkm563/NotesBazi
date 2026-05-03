@@ -288,7 +288,7 @@ export function AdminNotesList({ initialNotes }: AdminNotesListProps) {
                     <User size={14} className="text-indigo-500 group-hover/user:scale-110 transition-transform" /> 
                     {note.profiles ? (
                       <span className="text-slate-700 dark:text-slate-300 font-bold">
-                        {note.profiles.full_name || (note.profiles.username ? `@${note.profiles.username}` : note.profiles.email?.split('@')[0]) || "Student"}
+                        {note.profiles.name || (note.profiles.username ? `@${note.profiles.username}` : note.profiles.email?.split('@')[0]) || "Student"}
                       </span>
                     ) : (
                       <span className="text-slate-500 italic">NotesBazi Admin</span>
