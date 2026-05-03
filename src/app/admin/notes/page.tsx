@@ -29,14 +29,50 @@ import { AdminNoteActions } from "@/components/admin-note-actions";
 import { AdminNotesList } from "@/components/admin-notes-list";
 import { cn } from "@/lib/utils";
 
-export default async function NotesManagement() {
-  const supabase = await createClient();
+interface PageProps {
+  searchParams: Promise<{
+    sort?: string;
+    order?: 'asc' | 'desc';
+    q?: string;
+    status?: 'all' | 'verified' | 'unverified';
+    type?: string;
+  }>
+}
 
-  // 1. Fetch all notes
-  const { data: notesData, error: notesError } = await supabase
-    .from("notes")
-    .select("*")
-    .order("created_at", { ascending: false });
+export default async function NotesManagement({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const supabase = await createClient();
+  
+  const sort = params.sort || 'created_at';
+  const order = params.order || 'desc';
+  const query = params.q || '';
+  const status = params.status || 'all';
+  const typeFilter = params.type || 'all';
+
+  // 1. Prepare Queries
+  let dbQuery = supabase.from("notes").select("*");
+
+  if (query) {
+    dbQuery = dbQuery.or(`title.ilike.%${query}%,subject.ilike.%${query}%`);
+  }
+
+  if (status === 'verified') {
+    dbQuery = dbQuery.eq('is_verified', true);
+  } else if (status === 'unverified') {
+    dbQuery = dbQuery.eq('is_verified', false);
+  }
+
+  if (typeFilter !== 'all') {
+    dbQuery = dbQuery.eq('type', typeFilter);
+  }
+
+  if (['created_at', 'downloads', 'views', 'title'].includes(sort)) {
+    dbQuery = dbQuery.order(sort, { ascending: order === 'asc' });
+  } else {
+    dbQuery = dbQuery.order('created_at', { ascending: false });
+  }
+
+  const { data: notesData, error: notesError } = await dbQuery;
 
   if (notesError) {
     console.error("Error fetching notes:", notesError);
@@ -68,6 +104,32 @@ export default async function NotesManagement() {
   const totalDownloads = notes.reduce((acc, curr) => acc + (curr.downloads || 0), 0);
   const totalVerified = notes.filter(n => n.is_verified).length;
 
+  const getFilterLink = (key: string, value: string) => {
+    const newParams = new URLSearchParams();
+    if (params.sort) newParams.set('sort', params.sort);
+    if (params.order) newParams.set('order', params.order);
+    if (params.q) newParams.set('q', params.q);
+    if (params.status) newParams.set('status', params.status);
+    if (params.type) newParams.set('type', params.type);
+    
+    if (value === 'all') newParams.delete(key);
+    else newParams.set(key, value);
+    
+    return `/admin/notes?${newParams.toString()}`;
+  };
+
+  const getSortLink = (column: string) => {
+    const newOrder = sort === column && order === 'asc' ? 'desc' : 'asc';
+    const newParams = new URLSearchParams();
+    newParams.set('sort', column);
+    newParams.set('order', newOrder);
+    if (params.q) newParams.set('q', params.q);
+    if (params.status) newParams.set('status', params.status);
+    if (params.type) newParams.set('type', params.type);
+    
+    return `/admin/notes?${newParams.toString()}`;
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -75,17 +137,57 @@ export default async function NotesManagement() {
           <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Resources Library</h1>
           <p className="text-slate-500 font-medium mt-2">Verify content, manage subjects, and moderate uploads.</p>
         </div>
-        <div className="flex gap-3 w-full md:w-auto">
-          <Button variant="outline" className="rounded-2xl border-none bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/40 dark:shadow-none h-14 px-6 font-bold flex gap-2">
-            <Filter size={18} /> Filter
-          </Button>
-          <div className="relative flex-grow md:w-80 group">
+        <div className="flex flex-wrap gap-3 w-full md:w-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="rounded-2xl border-none bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/40 dark:shadow-none h-14 px-6 font-bold flex gap-2">
+                <Filter size={18} /> {status === 'all' ? 'Status' : status.toUpperCase()}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="rounded-2xl p-2 w-48 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+              <DropdownMenuItem asChild className="rounded-xl font-bold">
+                <Link href={getFilterLink('status', 'all')}>All Status</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="rounded-xl font-bold text-emerald-600">
+                <Link href={getFilterLink('status', 'verified')}>Verified Only</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="rounded-xl font-bold text-amber-600">
+                <Link href={getFilterLink('status', 'unverified')}>Unverified Only</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="rounded-2xl border-none bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/40 dark:shadow-none h-14 px-6 font-bold flex gap-2">
+                <ArrowUpDown size={18} /> Sort By
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="rounded-2xl p-2 w-48 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+              <DropdownMenuItem asChild className="rounded-xl font-bold">
+                <Link href={getSortLink('created_at')}>Newest First</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="rounded-xl font-bold">
+                <Link href={getSortLink('downloads')}>Most Downloads</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="rounded-xl font-bold">
+                <Link href={getSortLink('views')}>Most Views</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="rounded-xl font-bold">
+                <Link href={getSortLink('title')}>Alphabetical</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <form className="relative flex-grow md:w-80 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
             <input 
+              name="q"
+              defaultValue={query}
               placeholder="Search resources..." 
               className="w-full pl-12 h-14 rounded-2xl border-none bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/40 dark:shadow-none focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium px-4"
             />
-          </div>
+          </form>
         </div>
       </div>
 
@@ -121,7 +223,7 @@ export default async function NotesManagement() {
       {notes?.length === 0 && !error && (
         <div className="p-20 bg-white dark:bg-slate-900 rounded-[3rem] text-center border-2 border-dashed border-slate-200 dark:border-slate-800">
            <FileText size={48} className="mx-auto text-slate-200 mb-4" />
-           <p className="text-slate-500 font-bold">No resources have been uploaded yet.</p>
+           <p className="text-slate-500 font-bold">No resources found matching your criteria.</p>
         </div>
       )}
     </div>

@@ -251,32 +251,43 @@ export function AdminNotesList({ initialNotes }: AdminNotesListProps) {
                />
             </div>
             
-            {/* Note Preview Icon */}
-            <div className="h-24 w-24 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center flex-shrink-0 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/20 transition-colors ml-4">
-               <FileText size={40} className="text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" />
+            {/* Note Preview Thumbnail */}
+            <div className="h-32 w-32 bg-slate-100 dark:bg-slate-800 rounded-[1.5rem] flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-all relative overflow-hidden ml-4">
+               {note.file_url?.toLowerCase().endsWith('.pdf') ? (
+                 <div className="absolute inset-0 pointer-events-none">
+                   <iframe 
+                     src={`${note.file_url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                     className="w-[200%] h-[400px] border-none scale-50 origin-top-left opacity-60 group-hover:opacity-100 transition-opacity"
+                   />
+                 </div>
+               ) : (
+                 <FileText size={40} className="text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" />
+               )}
+               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent pointer-events-none" />
             </div>
 
             {/* Info */}
             <div className="flex-grow space-y-3 text-center lg:text-left min-w-0">
                <div className="flex flex-wrap justify-center lg:justify-start gap-3">
                   <Badge className="bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 border-none font-black">{note.subject}</Badge>
-                  <Badge variant="outline" className="rounded-lg font-bold">{note.type}</Badge>
-                  <Badge variant="secondary" className="bg-slate-100 text-slate-600 rounded-lg font-black">{note.year} Year • Sem {note.semester || "NA"}</Badge>
+                  <Badge variant="outline" className="rounded-lg font-bold border-slate-200 dark:border-slate-800">{note.type}</Badge>
+                  <Badge variant="secondary" className="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 rounded-lg font-black">{note.year} Year • Sem {note.semester || "NA"}</Badge>
                   {note.is_verified && (
                     <Badge className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border-none font-black flex gap-1">
                        <CheckCircle size={12} /> Verified
                     </Badge>
                   )}
                </div>
-               <h3 className="text-xl font-black text-slate-900 dark:text-white truncate pr-4">{note.title}</h3>
+               <h3 className="text-xl font-black text-slate-900 dark:text-white truncate pr-4 group-hover:text-indigo-600 transition-colors">{note.title}</h3>
                <div className="flex flex-wrap justify-center lg:justify-start items-center gap-4 text-sm font-bold text-slate-400">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                     <User size={14} className="text-indigo-500" /> 
                     {note.profiles?.username ? `@${note.profiles.username}` : "NotesBazi"}
                   </div>
                   <div className="flex items-center gap-1.5"><Calendar size={14} /> {note.created_at ? new Date(note.created_at).toISOString().split('T')[0] : "N/A"}</div>
-                  <div className="flex items-center gap-1.5"><Download size={14} className="text-emerald-500" /> {note.downloads || 0} Downloads</div>
-                  <div className="flex items-center gap-1.5"><Star size={14} className="text-amber-500 fill-amber-500" /> {note.average_rating || 0} Rating</div>
+                  <div className="flex items-center gap-1.5 text-emerald-600"><Download size={14} /> {note.downloads || 0}</div>
+                  <div className="flex items-center gap-1.5 text-blue-600"><Eye size={14} /> {note.views || 0}</div>
+                  <div className="flex items-center gap-1.5 text-amber-500"><Star size={14} className="fill-amber-500" /> {note.average_rating || 0}</div>
                </div>
             </div>
 
