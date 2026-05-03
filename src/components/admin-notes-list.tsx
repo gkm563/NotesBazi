@@ -144,42 +144,48 @@ export function AdminNotesList({ initialNotes }: AdminNotesListProps) {
                       </Button>
                    </DropdownMenuTrigger>
                    <DropdownMenuContent className="rounded-2xl p-2 w-64 bg-slate-900 border-slate-800 text-white">
-                      <div className="px-2 py-1.5 text-xs font-black text-slate-500 uppercase tracking-widest">Metadata Actions</div>
+                      <div className="px-3 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">Metadata Actions</div>
                       
                       <DropdownMenuSeparator className="bg-slate-800" />
                       
-                      <DropdownMenuLabel className="text-slate-400">Academic Year</DropdownMenuLabel>
-                      <div className="grid grid-cols-2 gap-1 p-1">
-                        {["1st", "2nd", "3rd", "4th"].map(y => (
-                          <DropdownMenuItem key={y} onClick={() => handleBulkUpdate({ year: y })} className="rounded-xl font-bold focus:bg-indigo-600 focus:text-white cursor-pointer justify-center py-2 border border-slate-800">
-                             {y} Year
-                          </DropdownMenuItem>
-                        ))}
+                      <div>
+                        <div className="px-3 py-1.5 text-xs font-bold text-slate-400">Academic Year</div>
+                        <div className="grid grid-cols-2 gap-1 p-1">
+                          {["1st", "2nd", "3rd", "4th"].map(y => (
+                            <DropdownMenuItem key={y} onClick={() => handleBulkUpdate({ year: y })} className="rounded-xl font-bold focus:bg-indigo-600 focus:text-white cursor-pointer justify-center py-2 border border-slate-800">
+                               {y} Year
+                            </DropdownMenuItem>
+                          ))}
+                        </div>
                       </div>
 
                       <DropdownMenuSeparator className="bg-slate-800" />
                       
-                      <DropdownMenuLabel className="text-slate-400">Semester</DropdownMenuLabel>
-                      <div className="grid grid-cols-4 gap-1 p-1">
-                        {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
-                          <DropdownMenuItem key={s} onClick={() => handleBulkUpdate({ semester: s })} className="rounded-xl font-bold focus:bg-indigo-600 focus:text-white cursor-pointer justify-center py-2 border border-slate-800">
-                             {s}
-                          </DropdownMenuItem>
-                        ))}
+                      <div>
+                        <div className="px-3 py-1.5 text-xs font-bold text-slate-400">Semester</div>
+                        <div className="grid grid-cols-4 gap-1 p-1">
+                          {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
+                            <DropdownMenuItem key={s} onClick={() => handleBulkUpdate({ semester: s })} className="rounded-xl font-bold focus:bg-indigo-600 focus:text-white cursor-pointer justify-center py-2 border border-slate-800">
+                               {s}
+                            </DropdownMenuItem>
+                          ))}
+                        </div>
                       </div>
 
                       <DropdownMenuSeparator className="bg-slate-800" />
                       
-                      <DropdownMenuLabel className="text-slate-400">Resource Type</DropdownMenuLabel>
-                      <div className="max-h-[200px] overflow-y-auto custom-scrollbar p-1 space-y-1">
-                        {[
-                          "Notes", "Assignment", "PYQ", "Lab Manual", 
-                          "Syllabus", "Sessional Paper", "Test Paper", "Semester Paper", "Remedial Paper"
-                        ].map(t => (
-                          <DropdownMenuItem key={t} onClick={() => handleBulkUpdate({ type: t })} className="rounded-xl font-bold focus:bg-indigo-600 focus:text-white cursor-pointer px-3 py-2 border border-slate-800">
-                             {t}
-                          </DropdownMenuItem>
-                        ))}
+                      <div>
+                        <div className="px-3 py-1.5 text-xs font-bold text-slate-400">Resource Type</div>
+                        <div className="max-h-[200px] overflow-y-auto custom-scrollbar p-1 space-y-1">
+                          {[
+                            "Notes", "Assignment", "PYQ", "Lab Manual", 
+                            "Syllabus", "Sessional Paper", "Test Paper", "Semester Paper", "Remedial Paper"
+                          ].map(t => (
+                            <DropdownMenuItem key={t} onClick={() => handleBulkUpdate({ type: t })} className="rounded-xl font-bold focus:bg-indigo-600 focus:text-white cursor-pointer px-3 py-2 border border-slate-800">
+                               {t}
+                            </DropdownMenuItem>
+                          ))}
+                        </div>
                       </div>
                    </DropdownMenuContent>
                 </DropdownMenu>
