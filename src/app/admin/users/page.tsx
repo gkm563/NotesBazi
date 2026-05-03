@@ -38,9 +38,9 @@ export default async function UserManagement({ searchParams }: PageProps) {
   // 1. Prepare Queries
   let dbQuery = supabase.from("profiles").select("*");
   if (query) {
-    dbQuery = dbQuery.or(`full_name.ilike.%${query}%,email.ilike.%${query}%,username.ilike.%${query}%`);
+    dbQuery = dbQuery.or(`name.ilike.%${query}%,email.ilike.%${query}%,username.ilike.%${query}%`);
   }
-  if (['full_name', 'role', 'created_at', 'username'].includes(sort)) {
+  if (['name', 'role', 'created_at', 'username'].includes(sort)) {
     dbQuery = dbQuery.order(sort, { ascending: order === 'asc' });
   } else {
     dbQuery = dbQuery.order('created_at', { ascending: false });
@@ -88,8 +88,8 @@ export default async function UserManagement({ searchParams }: PageProps) {
     });
   } else if (sort === 'student') {
     users.sort((a, b) => {
-      const nameA = (a.full_name || a.username || '').toLowerCase();
-      const nameB = (b.full_name || b.username || '').toLowerCase();
+      const nameA = (a.name || a.username || '').toLowerCase();
+      const nameB = (b.name || b.username || '').toLowerCase();
       return order === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
     });
   }
@@ -177,7 +177,7 @@ export default async function UserManagement({ searchParams }: PageProps) {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {users?.map((user) => {
-                const displayName = user.full_name || user.name || user.username || user.email?.split('@')[0] || "Unknown Student";
+                const displayName = user.name || user.username || user.email?.split('@')[0] || "Unknown Student";
                 const handle = user.username || user.email?.split('@')[0] || "student";
                 const isBlocked = user.is_blocked === true;
 
