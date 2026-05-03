@@ -21,14 +21,24 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
   const { username } = await params;
   const supabase = await createClient();
 
-  // 1. Fetch user by id (the route parameter is named username but contains the UUID)
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", username)
-    .single();
+  // 1. Fetch user by ID or Username
+  // Check if it's a UUID first
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(username);
+  
+  let dbQuery = supabase.from("profiles").select("*");
+  
+  if (isUUID) {
+    dbQuery = dbQuery.eq("id", username);
+  } else {
+    // If not UUID, try username or name
+    const decodedName = decodeURIComponent(username);
+    dbQuery = dbQuery.or(`username.eq."${decodedName}",name.eq."${decodedName}"`);
+  }
+
+  const { data: profile, error: profileError } = await dbQuery.maybeSingle();
 
   if (profileError || !profile) {
+    console.error("Profile Fetch Error:", profileError);
     notFound();
   }
 
