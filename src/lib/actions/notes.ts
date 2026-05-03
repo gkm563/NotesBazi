@@ -8,6 +8,7 @@ export async function uploadNoteAction(formData: {
   title: string;
   subject: string;
   year: string;
+  semester: number;
   type: string;
   description: string;
   file_url: string;
@@ -31,6 +32,7 @@ export async function uploadNoteAction(formData: {
       title: formData.title,
       subject: formData.subject,
       year: formData.year,
+      semester: formData.semester,
       type: formData.type,
       description: formData.description,
       file_url: formData.file_url,
@@ -122,6 +124,7 @@ export async function updateNoteAction(noteId: string, formData: {
   title: string;
   subject: string;
   year: string;
+  semester: number;
   type: string;
   description: string;
 }) {
@@ -136,6 +139,7 @@ export async function updateNoteAction(noteId: string, formData: {
       title: formData.title,
       subject: formData.subject,
       year: formData.year,
+      semester: formData.semester,
       type: formData.type,
       description: formData.description,
     })

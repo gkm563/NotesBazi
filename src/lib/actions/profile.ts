@@ -7,6 +7,8 @@ export async function updateProfileAction(formData: {
   name?: string;
   username?: string;
   department?: string;
+  year?: string;
+  semester?: number;
   avatar_url?: string;
 }) {
   const supabase = await createClient();
@@ -18,6 +20,8 @@ export async function updateProfileAction(formData: {
     name: formData.name,
     username: formData.username,
     department: formData.department,
+    year: formData.year,
+    semester: formData.semester,
   };
   if (formData.avatar_url !== undefined) {
     updateData.avatar_url = formData.avatar_url;

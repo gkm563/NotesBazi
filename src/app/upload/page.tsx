@@ -54,6 +54,7 @@ export default function UploadPage() {
     title: "",
     subject: "",
     year: "1st",
+    semester: 1,
     type: "Notes",
     description: "",
   });
@@ -76,6 +77,7 @@ export default function UploadPage() {
             title: data.title,
             subject: data.subject,
             year: data.year,
+            semester: data.semester || 1,
             type: data.type,
             description: data.description || "",
           });
@@ -391,27 +393,33 @@ export default function UploadPage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                    <div className="space-y-6">
-                      <Label className="text-sm font-black uppercase tracking-widest text-slate-400">Academic Year</Label>
-                      <div className="grid grid-cols-4 gap-3">
-                        {YEARS.map((y) => (
-                          <button
-                            key={y}
-                            type="button"
-                            onClick={() => setMetadata({...metadata, year: y})}
-                            className={cn(
-                              "py-4 rounded-2xl font-black text-sm transition-all border-2",
-                              metadata.year === y 
-                                ? "bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20" 
-                                : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-100 dark:border-slate-700 hover:border-emerald-400"
-                            )}
-                          >
-                            {y}
                           </button>
                         ))}
                       </div>
                     </div>
+
                     <div className="space-y-6">
+                      <Label className="text-sm font-black uppercase tracking-widest text-slate-400">Semester</Label>
+                      <div className="grid grid-cols-4 gap-3">
+                        {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => setMetadata({...metadata, semester: s})}
+                            className={cn(
+                              "py-4 rounded-2xl font-black text-sm transition-all border-2",
+                              metadata.semester === s 
+                                ? "bg-indigo-500 text-white border-indigo-500 shadow-lg shadow-indigo-500/20" 
+                                : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-100 dark:border-slate-700 hover:border-indigo-400"
+                            )}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-6 md:col-span-2">
                       <Label className="text-sm font-black uppercase tracking-widest text-slate-400">Resource Category</Label>
                       <div className="flex flex-wrap gap-2">
                         {TYPES.map((t) => (

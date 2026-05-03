@@ -26,6 +26,25 @@ export function NoteViewer({ fileUrl, title }: NoteViewerProps) {
 
   const refreshViewer = () => setKey(prev => prev + 1);
   
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(fileUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = title || "note";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download failed:", error);
+      // Fallback to opening in new tab if fetch fails (CORS)
+      window.open(fileUrl, "_blank");
+    }
+  };
+
   const handlePrint = () => {
     if (isPdf) {
       const printWindow = window.open(fileUrl, '_blank');
@@ -64,12 +83,10 @@ export function NoteViewer({ fileUrl, title }: NoteViewerProps) {
             <Button 
               variant="default" 
               size="sm" 
-              asChild 
+              onClick={handleDownload}
               className="h-9 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold px-4 ml-2 shadow-lg shadow-indigo-500/20"
             >
-              <a href={fileUrl} download={title}>
-                <Download size={16} className="mr-2" /> <span className="hidden sm:inline">Download</span>
-              </a>
+              <Download size={16} className="mr-2" /> <span className="hidden sm:inline">Download</span>
             </Button>
           </div>
       </div>

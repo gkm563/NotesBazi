@@ -118,10 +118,14 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
                   <p className="text-xl font-black text-slate-700 dark:text-slate-200">{note.year} Year</p>
                 </div>
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                  <p className="text-xs text-slate-400 font-extrabold uppercase tracking-widest mb-1">Semester</p>
+                  <p className="text-xl font-black text-slate-700 dark:text-slate-200">{note.semester || "N/A"}</p>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
                   <p className="text-xs text-slate-400 font-extrabold uppercase tracking-widest mb-1">Total Views</p>
                   <p className="text-xl font-black text-indigo-600 dark:text-indigo-400">{note.views || 0}</p>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 col-span-2 md:col-span-1">
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
                   <p className="text-xs text-slate-400 font-extrabold uppercase tracking-widest mb-1">Downloads</p>
                   <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{note.downloads || 0}</p>
                 </div>

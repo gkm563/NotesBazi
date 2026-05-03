@@ -51,7 +51,9 @@ export default function SettingsPage() {
   const [formData, setFormData] = useState({
     name: "",
     username: "",
-    department: ""
+    department: "",
+    year: "1st",
+    semester: 1
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -71,7 +73,9 @@ export default function SettingsPage() {
           setFormData({
             name: data.name || "",
             username: data.username || "",
-            department: data.department || "Other"
+            department: data.department || "Other",
+            year: data.year || "1st",
+            semester: data.semester || 1
           });
         }
       }
@@ -270,6 +274,41 @@ export default function SettingsPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <Label className="text-xs font-black uppercase text-slate-400 tracking-widest">Academic Year</Label>
+                    <Select 
+                      value={formData.year} 
+                      onValueChange={(val: string | null) => setFormData({...formData, year: val || "1st"})}
+                    >
+                      <SelectTrigger className="h-14 rounded-2xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold focus:ring-indigo-500/20">
+                        <SelectValue placeholder="Select Year" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl border-slate-200 dark:border-slate-700 shadow-2xl">
+                        {["1st", "2nd", "3rd", "4th"].map((y) => (
+                          <SelectItem key={y} value={y} className="py-3 font-medium">{y} Year</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-xs font-black uppercase text-slate-400 tracking-widest">Current Semester</Label>
+                    <Select 
+                      value={formData.semester.toString()} 
+                      onValueChange={(val: string | null) => setFormData({...formData, semester: parseInt(val || "1")})}
+                    >
+                      <SelectTrigger className="h-14 rounded-2xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold focus:ring-indigo-500/20">
+                        <SelectValue placeholder="Select Semester" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl border-slate-200 dark:border-slate-700 shadow-2xl">
+                        {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+                          <SelectItem key={s} value={s.toString()} className="py-3 font-medium">Semester {s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="pt-4">

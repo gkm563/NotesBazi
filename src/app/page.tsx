@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/ui/animated-section";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { ResourceNavigator } from "@/components/home/resource-navigator";
 
 export default async function Home() {
   let trendingNotes: any[] = [];
@@ -98,28 +99,9 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Year Categories */}
-      <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 -mt-10">
-        <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {["1st Year", "2nd Year", "3rd Year", "4th Year"].map((year, idx) => (
-            <StaggerItem key={idx}>
-              <Link 
-                href={`/notes?year=${idx + 1}st`}
-                className="group block p-8 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-[2rem] shadow-xl shadow-slate-200/40 dark:shadow-none border border-slate-200/60 dark:border-slate-800/80 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-2 transition-all duration-300"
-              >
-                <div className="h-16 w-16 bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-900/30 dark:to-violet-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <BookOpen className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <h3 className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors mb-2">
-                  {year}
-                </h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-                  Foundational concepts, assignments & PYQs.
-                </p>
-              </Link>
-            </StaggerItem>
-          ))}
-        </StaggerContainer>
+      {/* Interactive Resource Navigator */}
+      <section className="py-24 relative z-20 -mt-20">
+        <ResourceNavigator />
       </section>
 
       {/* Contributor of the Month */}
@@ -159,34 +141,63 @@ export default async function Home() {
         </AnimatedSection>
       </section>
 
-      {/* Trending Section */}
+      {/* Recommended/Trending Section */}
       <section className="py-20 bg-white/50 dark:bg-slate-900/30 border-y border-slate-200/50 dark:border-slate-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-16">
           <AnimatedSection direction="right">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-3xl font-black text-slate-900 dark:text-white flex items-center">
-                <TrendingUp className="mr-3 h-8 w-8 text-amber-500" />
-                Trending Resources
+                <Sparkles className="mr-3 h-8 w-8 text-amber-500" />
+                Recommended For You
               </h2>
             </div>
             <div className="space-y-4">
               {trendingNotes.length > 0 ? trendingNotes.map((item) => (
-                <Link key={item.id} href={`/notes/${item.id}`} className="group p-5 bg-white dark:bg-slate-900 rounded-[1.5rem] border border-slate-200/60 dark:border-slate-800 hover:shadow-xl transition-all flex gap-5 items-center">
-                  <div className="h-14 w-14 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <FileText className="text-indigo-500" size={24} />
+                <Link key={item.id} href={`/notes/${item.id}`} className="group p-5 bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200/60 dark:border-slate-800 hover:shadow-xl transition-all flex gap-5 items-center overflow-hidden relative">
+                  <div className="h-20 w-24 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden relative border border-slate-100 dark:border-slate-700">
+                    {/* Thumbnail logic */}
+                    {item.file_url?.toLowerCase().endsWith('.pdf') ? (
+                      <div className="absolute inset-0 pointer-events-none scale-[0.35] origin-top-left bg-white">
+                        <iframe 
+                          src={`${item.file_url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                          className="w-[300px] h-[400px] border-none"
+                          tabIndex={-1}
+                          loading="lazy"
+                        />
+                      </div>
+                    ) : item.file_url?.toLowerCase().match(/\.(jpg|jpeg|png|webp|gif)$/) ? (
+                      <img src={item.file_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="flex flex-col items-center">
+                        {item.file_url?.toLowerCase().match(/\.(ppt|pptx)$/) ? (
+                          <Presentation size={24} className="text-orange-500" />
+                        ) : (
+                          <FileText size={24} className="text-indigo-500" />
+                        )}
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
                   </div>
+                  
                   <div className="flex-grow min-w-0">
-                    <h4 className="font-bold text-slate-900 dark:text-white truncate">{item.title}</h4>
+                    <h4 className="font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 transition-colors">{item.title}</h4>
                     <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
                       {item.subject} • {item.year} Year
                     </p>
-                    <p className="text-xs text-indigo-500 font-semibold mt-1">
-                      By {item.profiles?.role === 'admin' ? 'System Admin - NotesBazi' : (item.profiles?.name || 'Student')}
-                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="h-5 w-5 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 text-[8px] font-bold overflow-hidden shrink-0">
+                        {item.profiles?.avatar_url ? <img src={item.profiles.avatar_url} className="w-full h-full object-cover" /> : (item.profiles?.name?.[0] || "S")}
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight truncate">
+                        {item.profiles?.name || 'Student'}
+                      </span>
+                    </div>
                   </div>
-                  <Badge className="bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 border-none font-bold">
-                    <Eye size={12} className="mr-1" /> {item.views || 0}
-                  </Badge>
+                  <div className="flex flex-col items-end gap-2">
+                    <Badge variant="outline" className="bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 border-none font-bold text-[10px]">
+                      <Eye size={10} className="mr-1" /> {item.views || 0}
+                    </Badge>
+                  </div>
                 </Link>
               )) : (
                 <div className="p-8 text-center text-slate-500 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700">
@@ -205,20 +216,47 @@ export default async function Home() {
             </div>
             <div className="space-y-4">
               {recentNotes.length > 0 ? recentNotes.map((item) => (
-                <Link key={item.id} href={`/notes/${item.id}`} className="group p-5 bg-white dark:bg-slate-900 rounded-[1.5rem] border border-slate-200/60 dark:border-slate-800 hover:shadow-xl transition-all flex gap-5 items-center">
-                  <div className="h-14 w-14 bg-violet-50 dark:bg-violet-900/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <BookOpen className="text-violet-500" size={24} />
+                <Link key={item.id} href={`/notes/${item.id}`} className="group p-5 bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200/60 dark:border-slate-800 hover:shadow-xl transition-all flex gap-5 items-center overflow-hidden relative">
+                   <div className="h-20 w-24 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden relative border border-slate-100 dark:border-slate-700">
+                    {/* Thumbnail logic */}
+                    {item.file_url?.toLowerCase().endsWith('.pdf') ? (
+                      <div className="absolute inset-0 pointer-events-none scale-[0.35] origin-top-left bg-white">
+                        <iframe 
+                          src={`${item.file_url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                          className="w-[300px] h-[400px] border-none"
+                          tabIndex={-1}
+                          loading="lazy"
+                        />
+                      </div>
+                    ) : item.file_url?.toLowerCase().match(/\.(jpg|jpeg|png|webp|gif)$/) ? (
+                      <img src={item.file_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="flex flex-col items-center">
+                        {item.file_url?.toLowerCase().match(/\.(ppt|pptx)$/) ? (
+                          <Presentation size={24} className="text-orange-500" />
+                        ) : (
+                          <FileText size={24} className="text-indigo-500" />
+                        )}
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
                   </div>
+
                   <div className="flex-grow min-w-0">
-                    <h4 className="font-bold text-slate-900 dark:text-white truncate">{item.title}</h4>
+                    <h4 className="font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 transition-colors">{item.title}</h4>
                     <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
                       {item.subject} • {item.type}
                     </p>
-                    <p className="text-xs text-indigo-500 font-semibold mt-1">
-                      By {item.profiles?.role === 'admin' ? 'System Admin - NotesBazi' : (item.profiles?.name || 'Student')}
-                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="h-5 w-5 bg-violet-50 dark:bg-violet-900/30 rounded-full flex items-center justify-center text-violet-600 text-[8px] font-bold overflow-hidden shrink-0">
+                        {item.profiles?.avatar_url ? <img src={item.profiles.avatar_url} className="w-full h-full object-cover" /> : (item.profiles?.name?.[0] || "S")}
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight truncate">
+                        {item.profiles?.name || 'Student'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex-shrink-0 text-xs font-bold text-slate-400 bg-slate-50 dark:bg-slate-800 px-3 py-1 rounded-lg">New</div>
+                  <div className="flex-shrink-0 text-[10px] font-black text-violet-600 bg-violet-50 dark:bg-violet-900/30 px-3 py-1 rounded-full uppercase tracking-widest">New</div>
                 </Link>
               )) : (
                 <div className="p-8 text-center text-slate-500 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700">

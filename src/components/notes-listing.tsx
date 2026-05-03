@@ -14,7 +14,9 @@ import {
   ChevronRight,
   MoreVertical,
   Presentation,
-  FileStack
+  FileStack,
+  Clock,
+  RefreshCcw
 } from "lucide-react";
 import { StaggerContainer, StaggerItem } from "@/components/ui/animated-section";
 import { Input } from "@/components/ui/input";
@@ -41,11 +43,13 @@ export function NotesListing({
   initialSearch = "", 
   initialData = [],
   initialYear = "All",
+  initialSemester = "All",
   initialType = "All"
 }: { 
   initialSearch?: string;
   initialData?: any[];
   initialYear?: string;
+  initialSemester?: string;
   initialType?: string;
 }) {
   const router = useRouter();
@@ -54,11 +58,22 @@ export function NotesListing({
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [yearFilter, setYearFilter] = useState(initialYear);
+  const [semesterFilter, setSemesterFilter] = useState(initialSemester);
   const [typeFilter, setTypeFilter] = useState(initialType);
+  const [profile, setProfile] = useState<any>(null);
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // Sync state when initial props change (e.g. on URL navigation)
+  useEffect(() => {
+    setSearchTerm(initialSearch);
+    setYearFilter(initialYear);
+    setSemesterFilter(initialSemester);
+    setTypeFilter(initialType);
+    setNotes(initialData);
+  }, [initialSearch, initialYear, initialSemester, initialType, initialData]);
 
   const keywordDictionary = [
     "Python", "PyCharm", "PyGame", "Physics", "Physical Chemistry",
@@ -103,18 +118,34 @@ export function NotesListing({
   }, [debouncedSearchTerm]);
 
   // Sync state with URL when filters change
-  const updateUrl = (q: string, y: string, t: string) => {
+  const updateUrl = (q: string, y: string, s: string, t: string) => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (y !== "All") params.set("year", y);
+    if (s !== "All") params.set("semester", s);
     if (t !== "All") params.set("type", t);
     
     router.push(`/notes?${params.toString()}`, { scroll: false });
   };
 
+  // Sync state when initial props change (e.g. on URL navigation)
+  useEffect(() => {
+    setSearchTerm(initialSearch);
+    setYearFilter(initialYear);
+    setSemesterFilter(initialSemester);
+    setTypeFilter(initialType);
+    if (initialData && initialData.length > 0) {
+      setNotes(initialData);
+    }
+  }, [initialSearch, initialYear, initialSemester, initialType, initialData]);
+
   const fetchNotes = async (term?: string) => {
     setLoading(true);
     const search = term ?? searchTerm;
+    const year = yearFilter;
+    const sem = semesterFilter;
+    const type = typeFilter;
+    
     try {
       let query = supabase
         .from("notes")
@@ -125,12 +156,16 @@ export function NotesListing({
         query = query.or(`title.ilike.%${search}%,subject.ilike.%${search}%,description.ilike.%${search}%`);
       }
 
-      if (yearFilter !== "All") {
-        query = query.eq("year", yearFilter);
+      if (year !== "All") {
+        query = query.eq("year", year);
       }
 
-      if (typeFilter !== "All") {
-        query = query.eq("type", typeFilter);
+      if (sem !== "All") {
+        query = query.eq("semester", parseInt(sem));
+      }
+
+      if (type !== "All") {
+        query = query.eq("type", type);
       }
 
       const { data, error } = await query;
@@ -154,24 +189,46 @@ export function NotesListing({
       setNotes(fetchedNotes);
     } catch (error: any) {
       console.error("Supabase Fetch Error:", error);
-      toast.error(error.message || "Failed to fetch notes");
+      toast.error("Failed to fetch notes. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Only fetch if state differs from initial props
-    if (yearFilter === initialYear && typeFilter === initialType && searchTerm === initialSearch && notes.length > 0) {
-      return;
-    }
+    // Fetch if state is different from what we currently have
+    // or if we have no notes and filters are applied
     fetchNotes();
-  }, [yearFilter, typeFilter, debouncedSearchTerm]);
+  }, [yearFilter, semesterFilter, typeFilter, debouncedSearchTerm]);
+
+  // Personalization: Fetch profile and set filters if not already set
+  useEffect(() => {
+    const getProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+        
+        if (data) {
+          setProfile(data);
+          // If no filters are explicitly set in URL, use profile defaults
+          if (initialYear === "All" && initialSemester === "All") {
+            if (data.year) setYearFilter(data.year);
+            if (data.semester) setSemesterFilter(data.semester.toString());
+          }
+        }
+      }
+    };
+    getProfile();
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setShowSuggestions(false);
-    updateUrl(searchTerm, yearFilter, typeFilter);
+    updateUrl(searchTerm, yearFilter, semesterFilter, typeFilter);
     fetchNotes();
   };
 
@@ -179,66 +236,101 @@ export function NotesListing({
 
   return (
     <div className="flex flex-col lg:flex-row gap-8">
-      {/* Mobile Filter Toggle */}
-      <div className="lg:hidden flex gap-4">
-        <Button 
-          variant="outline" 
-          onClick={() => setShowMobileFilters(!showMobileFilters)}
-          className="flex-1 rounded-2xl py-6 font-bold flex gap-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/20"
-        >
-          <Filter size={18} /> {showMobileFilters ? "Hide Filters" : "Show Filters"}
-        </Button>
+      {/* Mobile Filter Toggle & Search Header */}
+      <div className="lg:hidden flex flex-col gap-4">
+        <div className="flex gap-3">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            className="flex-1 h-14 rounded-2xl font-bold flex gap-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg shadow-slate-200/10"
+          >
+            <Filter size={18} className="text-indigo-600" /> {showMobileFilters ? "Hide Filters" : "Filters"}
+          </Button>
+          <Button 
+            variant="outline" 
+            className="h-14 w-14 rounded-2xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg shadow-slate-200/10 flex items-center justify-center"
+            onClick={() => {setSearchTerm(""); fetchNotes("");}}
+          >
+            <RefreshCcw size={18} className="text-slate-400" />
+          </Button>
+        </div>
       </div>
 
       {/* Sidebar Filters */}
       <aside className={cn(
-        "w-full lg:w-72 space-y-8 flex-shrink-0 transition-all duration-300",
+        "w-full lg:w-72 space-y-6 flex-shrink-0 transition-all duration-300",
         !showMobileFilters && "hidden lg:block"
       )}>
-        <div className="p-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-slate-200/60 dark:border-slate-700/50 shadow-xl shadow-slate-200/20 dark:shadow-none">
+        <div className="p-6 bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-2xl">
           <h3 className="font-black text-slate-900 dark:text-white mb-6 flex items-center text-lg tracking-tight">
-            <Filter size={20} className="mr-3 text-indigo-600" /> Filters
+            <Filter size={20} className="mr-3 text-indigo-600" /> Refine Search
           </h3>
           
           <div className="space-y-6">
-            <div className="space-y-3">
-               <label className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Academic Year</label>
-               <Select value={yearFilter} onValueChange={(val: string | null) => {const v = val || "All"; setYearFilter(v); updateUrl(searchTerm, v, typeFilter); if(window.innerWidth < 1024) setShowMobileFilters(false);}}>
-                  <SelectTrigger className="rounded-2xl border-slate-200 dark:border-slate-700 py-6 bg-slate-50 dark:bg-slate-800/50 focus:ring-indigo-500/20">
-                     <SelectValue placeholder="Select Year" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-slate-200 dark:border-slate-700 shadow-2xl">
-                     <SelectItem value="All" className="py-3">All Years</SelectItem>
-                     <SelectItem value="1st" className="py-3">1st Year</SelectItem>
-                     <SelectItem value="2nd" className="py-3">2nd Year</SelectItem>
-                     <SelectItem value="3rd" className="py-3">3rd Year</SelectItem>
-                     <SelectItem value="4th" className="py-3">4th Year</SelectItem>
-                  </SelectContent>
-               </Select>
+            {/* Year & Semester combined on mobile */}
+            <div className="grid grid-cols-1 gap-4">
+               <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Academic Year</label>
+                  <Select value={yearFilter} onValueChange={(val: string | null) => {const v = val || "All"; setYearFilter(v); updateUrl(searchTerm, v, semesterFilter, typeFilter); if(window.innerWidth < 1024) setShowMobileFilters(false);}}>
+                     <SelectTrigger className="h-14 rounded-2xl border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold">
+                        <SelectValue placeholder="Select Year" />
+                     </SelectTrigger>
+                     <SelectContent className="rounded-2xl border-slate-200 dark:border-slate-700 shadow-2xl">
+                        <SelectItem value="All" className="py-3">All Years</SelectItem>
+                        <SelectItem value="1st" className="py-3">1st Year</SelectItem>
+                        <SelectItem value="2nd" className="py-3">2nd Year</SelectItem>
+                        <SelectItem value="3rd" className="py-3">3rd Year</SelectItem>
+                        <SelectItem value="4th" className="py-3">4th Year</SelectItem>
+                     </SelectContent>
+                  </Select>
+               </div>
+
+               <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Semester</label>
+                  <Select value={semesterFilter} onValueChange={(val: string | null) => {const v = val || "All"; setSemesterFilter(v); updateUrl(searchTerm, yearFilter, v, typeFilter); if(window.innerWidth < 1024) setShowMobileFilters(false);}}>
+                     <SelectTrigger className="h-14 rounded-2xl border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold">
+                        <SelectValue placeholder="Select Semester" />
+                     </SelectTrigger>
+                     <SelectContent className="rounded-2xl border-slate-200 dark:border-slate-700 shadow-2xl">
+                        <SelectItem value="All" className="py-3">All Semesters</SelectItem>
+                        {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
+                          <SelectItem key={s} value={s.toString()} className="py-3">Semester {s}</SelectItem>
+                        ))}
+                     </SelectContent>
+                  </Select>
+               </div>
             </div>
 
-            <div className="space-y-3">
-               <label className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Resource Type</label>
-               <Select value={typeFilter} onValueChange={(val: string | null) => {const v = val || "All"; setTypeFilter(v); updateUrl(searchTerm, yearFilter, v); if(window.innerWidth < 1024) setShowMobileFilters(false);}}>
-                  <SelectTrigger className="rounded-2xl border-slate-200 dark:border-slate-700 py-6 bg-slate-50 dark:bg-slate-800/50 focus:ring-indigo-500/20">
-                     <SelectValue placeholder="Select Type" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-slate-200 dark:border-slate-700 shadow-2xl">
-                     <SelectItem value="All" className="py-3">All Types</SelectItem>
-                     <SelectItem value="Notes" className="py-3">Study Notes</SelectItem>
-                     <SelectItem value="Assignment" className="py-3">Assignments</SelectItem>
-                     <SelectItem value="PYQ" className="py-3">Previous Year Qs</SelectItem>
-                  </SelectContent>
-               </Select>
+            <div className="space-y-4">
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Resource Type</label>
+               <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
+                  {["All", "Notes", "Assignment", "PYQ", "Lab Manual"].map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => {setTypeFilter(t); updateUrl(searchTerm, yearFilter, semesterFilter, t); if(window.innerWidth < 1024) setShowMobileFilters(false);}}
+                      className={cn(
+                        "text-left px-4 py-3 rounded-xl font-bold transition-all flex items-center justify-between group",
+                        typeFilter === t 
+                          ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" 
+                          : "bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100"
+                      )}
+                    >
+                      <span className="flex items-center gap-2 text-xs">
+                        {t === "All" ? "All" : t}
+                      </span>
+                      {typeFilter === t && <ChevronRight size={12} className="hidden lg:block" />}
+                    </button>
+                  ))}
+               </div>
             </div>
 
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
                <Button 
                   variant="ghost" 
-                  onClick={() => {setYearFilter("All"); setTypeFilter("All"); setSearchTerm(""); updateUrl("", "All", "All"); setShowMobileFilters(false);}}
-                  className="w-full text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl py-6 transition-all"
+                  onClick={() => {setYearFilter("All"); setSemesterFilter("All"); setTypeFilter("All"); setSearchTerm(""); updateUrl("", "All", "All", "All"); setShowMobileFilters(false);}}
+                  className="w-full text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-xl font-black text-xs uppercase"
                >
-                  Reset All Filters
+                  Reset Filters
                </Button>
             </div>
           </div>
@@ -246,20 +338,20 @@ export function NotesListing({
       </aside>
 
       {/* Main Content */}
-      <div className="flex-grow space-y-8">
-        {/* Search Bar & Suggestions */}
+      <div className="flex-grow space-y-6 md:space-y-8">
+        {/* Search Bar */}
         <div className="relative">
-          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-2 rounded-3xl border border-slate-200/60 dark:border-slate-700/50 shadow-xl shadow-slate-200/20 dark:shadow-none transition-all focus-within:ring-4 focus-within:ring-indigo-500/10">
+          <div className="bg-white dark:bg-slate-900 p-1.5 md:p-2 rounded-2xl md:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl shadow-slate-200/20 focus-within:ring-4 focus-within:ring-indigo-500/10 transition-all">
             <form onSubmit={handleSearch} className="relative flex items-center">
-              <Search className="absolute left-6 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={24} />
+              <Search className="absolute left-4 md:left-6 text-slate-400" size={20} />
               <Input 
                 value={searchTerm}
                 onChange={(e) => {setSearchTerm(e.target.value); setShowSuggestions(true);}}
                 onFocus={() => setShowSuggestions(true)}
-                placeholder="Search subjects, topics, or keywords..."
-                className="pl-16 pr-32 py-8 text-lg rounded-2xl border-none shadow-none focus-visible:ring-0 bg-transparent dark:text-white"
+                placeholder="Search subjects..."
+                className="pl-12 md:pl-16 pr-24 md:pr-32 h-12 md:h-16 text-sm md:text-lg border-none focus-visible:ring-0 bg-transparent"
               />
-              <Button type="submit" className="absolute right-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl px-8 py-6 font-bold shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]">
+              <Button type="submit" className="absolute right-1 md:right-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl md:rounded-2xl h-10 md:h-12 px-4 md:px-8 font-black text-xs md:text-base shadow-lg shadow-indigo-500/20">
                 Search
               </Button>
             </form>
@@ -285,7 +377,7 @@ export function NotesListing({
                           onClick={() => {
                             setSearchTerm(keyword);
                             setShowSuggestions(false);
-                            updateUrl(keyword, yearFilter, typeFilter);
+                            updateUrl(keyword, yearFilter, semesterFilter, typeFilter);
                             fetchNotes(keyword);
                           }}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-all border border-indigo-100 dark:border-indigo-800/50"
@@ -307,7 +399,7 @@ export function NotesListing({
                         onClick={() => {
                           setSearchTerm(s.title);
                           setShowSuggestions(false);
-                          updateUrl(s.title, yearFilter, typeFilter);
+                          updateUrl(s.title, yearFilter, semesterFilter, typeFilter);
                           fetchNotes(s.title);
                         }}
                         className="w-full text-left p-3 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 flex items-center gap-3 transition-all group"
@@ -336,7 +428,24 @@ export function NotesListing({
             ))}
           </div>
         ) : notes.length > 0 ? (
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <>
+            {/* Active Filters Display */}
+            <div className="mb-8 flex flex-wrap items-center gap-4">
+               {(yearFilter !== "All" || semesterFilter !== "All" || typeFilter !== "All") && (
+                  <div className="flex flex-wrap items-center gap-2">
+                     <span className="text-xs font-black uppercase text-slate-400 tracking-widest mr-2">Filters:</span>
+                     {yearFilter !== "All" && <Badge className="bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 border-indigo-100 dark:border-indigo-800 rounded-lg px-3 py-1 font-bold">{yearFilter} Year</Badge>}
+                     {semesterFilter !== "All" && <Badge className="bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 border-indigo-100 dark:border-indigo-800 rounded-lg px-3 py-1 font-bold">Sem {semesterFilter}</Badge>}
+                     {typeFilter !== "All" && <Badge className="bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 border-indigo-100 dark:border-indigo-800 rounded-lg px-3 py-1 font-bold">{typeFilter}</Badge>}
+                     <button onClick={() => {setYearFilter("All"); setSemesterFilter("All"); setTypeFilter("All"); updateUrl(searchTerm, "All", "All", "All");}} className="text-xs font-black text-rose-500 hover:underline ml-2 uppercase">Clear All</button>
+                  </div>
+               )}
+               <div className="ml-auto text-sm font-bold text-slate-400">
+                  {loading ? "Searching..." : `Showing ${notes.length} resources`}
+               </div>
+            </div>
+
+            <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
             {notes.map((note) => (
               <StaggerItem key={note.id}>
                 <Link href={`/notes/${note.id}`} className="group block h-full">
@@ -354,18 +463,22 @@ export function NotesListing({
                       <div className="h-32 w-full bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-800/50 rounded-2xl flex items-center justify-center mb-6 group-hover:from-indigo-50 group-hover:to-violet-50 dark:group-hover:from-indigo-900/20 dark:group-hover:to-violet-900/20 transition-colors relative overflow-hidden">
                          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-50 z-0" />
                          
-                         {/* Document Preview Thumbnail */}
+                         {/* Document Preview Thumbnail - ONLY ON DESKTOP FOR PERFORMANCE */}
                          {note.file_url?.toLowerCase().endsWith('.pdf') && (
-                           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none bg-white dark:bg-slate-200">
-                             <iframe 
-                               src={`${note.file_url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-                               className="w-[200%] h-[500px] border-none pointer-events-none scale-50 origin-top-left opacity-100"
-                               tabIndex={-1}
-                               loading="lazy"
-                             />
-                             {/* Light border/inner shadow for depth */}
-                             <div className="absolute inset-0 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] pointer-events-none"></div>
-                           </div>
+                           <>
+                             <div className="hidden md:block absolute inset-0 z-0 overflow-hidden pointer-events-none select-none bg-white dark:bg-slate-200">
+                               <iframe 
+                                 src={`${note.file_url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                                 className="w-[200%] h-[500px] border-none pointer-events-none scale-50 origin-top-left opacity-100"
+                                 tabIndex={-1}
+                                 loading="lazy"
+                               />
+                               <div className="absolute inset-0 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] pointer-events-none"></div>
+                             </div>
+                             <div className="md:hidden relative z-10 transition-transform duration-500 group-hover:scale-110 drop-shadow-md">
+                               <FileText size={48} strokeWidth={1.5} className="text-indigo-400 dark:text-indigo-500" />
+                             </div>
+                           </>
                          )}
 
                          {!note.file_url?.toLowerCase().endsWith('.pdf') && (
@@ -431,7 +544,8 @@ export function NotesListing({
                 </Link>
               </StaggerItem>
             ))}
-          </StaggerContainer>
+            </StaggerContainer>
+            </>
         ) : (
           <div className="py-32 text-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center">
             <div className="h-24 w-24 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mb-6">

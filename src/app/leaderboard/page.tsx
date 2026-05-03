@@ -202,6 +202,46 @@ export default async function LeaderboardPage() {
           </AnimatedSection>
         )}
       </div>
+
+      {/* Your Rank Floating Card (Mobile) / Bottom Card (Desktop) */}
+      <YourRankSection contributors={contributors} />
     </main>
+  );
+}
+
+async function YourRankSection({ contributors }: { contributors: any[] }) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) return null;
+  
+  const userRank = contributors.findIndex(c => c.id === user.id) + 1;
+  const userData = contributors.find(c => c.id === user.id);
+  
+  if (!userData) return null;
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 p-4 z-50 md:static md:mt-12 md:max-w-5xl md:mx-auto">
+      <div className="bg-indigo-600 text-white rounded-[2rem] p-6 shadow-2xl flex items-center justify-between border-4 border-white dark:border-slate-800 animate-bounce-subtle">
+        <div className="flex items-center gap-6">
+          <div className="h-16 w-16 bg-white text-indigo-600 rounded-2xl flex items-center justify-center text-2xl font-black shadow-lg">
+            #{userRank}
+          </div>
+          <div>
+            <p className="text-xs font-black uppercase tracking-widest text-indigo-200">Your Current Rank</p>
+            <h4 className="text-xl font-black">{userData.name}</h4>
+          </div>
+        </div>
+        <div className="text-right flex items-center gap-6">
+          <div className="hidden sm:block">
+            <p className="text-xs font-black uppercase tracking-widest text-indigo-200">Resources</p>
+            <p className="text-2xl font-black">{userData.uploadCount}</p>
+          </div>
+          <Link href="/upload" className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-black hover:bg-indigo-50 transition-colors shadow-lg">
+            Upload More
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }

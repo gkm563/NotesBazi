@@ -11,6 +11,7 @@ export default async function NotesPage({
   const resolvedParams = await searchParams;
   const query = typeof resolvedParams.q === "string" ? resolvedParams.q : "";
   const year = typeof resolvedParams.year === "string" ? resolvedParams.year : "All";
+  const semester = typeof resolvedParams.semester === "string" ? resolvedParams.semester : "All";
   const type = typeof resolvedParams.type === "string" ? resolvedParams.type : "All";
   
   // Fetch initial notes server-side
@@ -26,6 +27,10 @@ export default async function NotesPage({
 
   if (year !== "All") {
     dbQuery = dbQuery.eq("year", year);
+  }
+
+  if (semester !== "All") {
+    dbQuery = dbQuery.eq("semester", parseInt(semester));
   }
 
   if (type !== "All") {
@@ -85,6 +90,7 @@ export default async function NotesPage({
             initialSearch={query} 
             initialData={initialNotes || []} 
             initialYear={year}
+            initialSemester={semester}
             initialType={type}
           />
         </Suspense>

@@ -91,9 +91,27 @@ export function NoteActions({ noteId, fileUrl }: NoteActionsProps) {
   };
 
   const handleDownload = async () => {
-    // Increment download count
-    await supabase.rpc('increment_downloads', { note_id: noteId });
-    window.open(fileUrl, '_blank');
+    try {
+      // Increment download count
+      await supabase.rpc('increment_downloads', { note_id: noteId });
+      
+      const response = await fetch(fileUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      // Extract filename from URL or use a default
+      const fileName = fileUrl.split('/').pop()?.split('?')[0] || "document";
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download failed:", error);
+      // Fallback to opening in new tab
+      window.open(fileUrl, '_blank');
+    }
   };
 
   const handleShare = async () => {

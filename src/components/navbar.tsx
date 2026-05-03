@@ -76,7 +76,7 @@ export function Navbar() {
   const navLinks = [
     { name: "Explore Notes", href: "/notes" },
     { name: "Leaderboard", href: "/leaderboard" },
-    { name: "Community", href: "/about" },
+    { name: "About Us", href: "/about" },
     { name: "Contact", href: "/contact" },
   ];
 
@@ -131,55 +131,12 @@ export function Navbar() {
                 <PlusCircle size={18} /> Upload
               </Link>
               
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="h-10 w-10 md:h-12 md:w-12 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:shadow-xl transition-all outline-none">
-                    <User className="h-5 w-5 md:h-6 md:w-6 text-slate-600 dark:text-slate-300" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 rounded-[2.5rem] p-4 mt-4 shadow-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-slate-200/50 dark:border-slate-800/50">
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel className="p-4 pt-2">
-                      <p className="text-sm font-black text-slate-900 dark:text-white truncate">{user.user_metadata?.full_name || "Student"}</p>
-                      <p className="text-xs font-bold text-slate-400 mt-0.5 truncate">{user.email}</p>
-                    </DropdownMenuLabel>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator className="my-2 bg-slate-100 dark:bg-slate-800" />
-                  <DropdownMenuItem asChild className="rounded-2xl p-4 cursor-pointer focus:bg-indigo-50 dark:focus:bg-indigo-900/20 transition-all group">
-                    <Link href="/dashboard" className="flex items-center gap-4 w-full">
-                      <LayoutDashboard className="h-5 w-5 text-indigo-600" />
-                      <span className="font-black text-sm">Dashboard</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="rounded-2xl p-4 cursor-pointer focus:bg-indigo-50 dark:focus:bg-indigo-900/20 transition-all group">
-                    <Link href="/leaderboard" className="flex items-center gap-4 w-full">
-                      <Trophy className="h-5 w-5 text-amber-500" />
-                      <span className="font-black text-sm">Leaderboard</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="rounded-2xl p-4 cursor-pointer focus:bg-indigo-50 dark:focus:bg-indigo-900/20 transition-all group">
-                    <Link href="/upload" className="flex items-center gap-4 w-full md:hidden">
-                      <PlusCircle className="h-5 w-5 text-indigo-600" />
-                      <span className="font-black text-sm">Upload Note</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  {user?.email === "admin@notesbazi.com" && (
-                    <DropdownMenuItem asChild className="rounded-2xl p-4 cursor-pointer focus:bg-emerald-50 dark:focus:bg-emerald-900/20 transition-all group">
-                      <Link href="/admin" className="flex items-center gap-4 w-full">
-                        <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                        <span className="font-black text-sm">Admin Portal</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator className="my-2 bg-slate-100 dark:bg-slate-800" />
-                  <DropdownMenuItem onClick={handleSignOut} className="rounded-2xl p-4 cursor-pointer text-red-500 focus:bg-red-50 dark:focus:bg-red-900/10 transition-all">
-                    <div className="flex items-center gap-4 w-full">
-                      <LogOut className="h-5 w-5" />
-                      <span className="font-black text-sm">Sign Out</span>
-                    </div>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Link 
+                href="/dashboard"
+                className="h-10 w-10 md:h-12 md:w-12 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:shadow-xl transition-all outline-none"
+              >
+                <User className="h-5 w-5 md:h-6 md:w-6 text-slate-600 dark:text-slate-300" />
+              </Link>
             </div>
           ) : (
             <div className="flex items-center gap-2">

@@ -4,6 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 
 export default function ContactPage() {
   return (
@@ -64,7 +67,7 @@ export default function ContactPage() {
                     <p className="font-black text-slate-900 dark:text-white group-hover:text-indigo-600">Gautam Kumar Maurya</p>
                     <p className="text-xs font-bold text-slate-400">Linkedln: @gkm563</p>
                   </div>
-                  <Linkedin className="text-slate-300 group-hover:text-indigo-600 transition-colors" />
+                  <ExternalLink className="text-slate-300 group-hover:text-indigo-600 transition-colors" />
                </Link>
             </div>
           </div>
@@ -99,7 +102,6 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
-    </main>
     </main>
   );
 }
