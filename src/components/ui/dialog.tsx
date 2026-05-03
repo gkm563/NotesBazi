@@ -96,7 +96,6 @@ function DialogContent({
                 <span className="sr-only">Close</span>
               </Button>
             }
-            {...props}
           />
         )}
       </DialogPrimitive.Popup>

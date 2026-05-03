@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { 
@@ -43,7 +43,7 @@ const TYPES = [
   "Syllabus", "Sessional Paper", "Test Paper", "Semester Paper", "Remedial Paper"
 ];
 
-export default function UploadPage() {
+function UploadForm() {
   const router = useRouter();
   const supabase = createClient();
   const subjectInputRef = useRef<HTMLInputElement>(null);
@@ -490,5 +490,20 @@ export default function UploadPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function UploadPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] dark:bg-[#0B1120]">
+        <div className="flex flex-col items-center gap-4 text-slate-400">
+          <Loader className="h-12 w-12 animate-spin text-indigo-500" />
+          <p className="font-black uppercase tracking-widest text-xs">Initializing Upload Module...</p>
+        </div>
+      </div>
+    }>
+      <UploadForm />
+    </Suspense>
   );
 }

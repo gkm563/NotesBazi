@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Search, BookOpen, GraduationCap, Clock, TrendingUp, Download, Eye, Star, ChevronRight, FileText, Sparkles, Trophy, ShieldCheck, User } from "lucide-react";
+import { Search, BookOpen, GraduationCap, Clock, TrendingUp, Download, Eye, Star, ChevronRight, FileText, Sparkles, Trophy, ShieldCheck, User, Presentation } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/ui/animated-section";
 import { Badge } from "@/components/ui/badge";

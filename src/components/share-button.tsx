@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 interface ShareButtonProps {
   className?: string;
   variant?: "outline" | "default" | "ghost";
-  size?: "sm" | "md" | "lg" | "icon";
+  size?: "sm" | "default" | "lg" | "icon";
   showLabel?: boolean;
 }
 
