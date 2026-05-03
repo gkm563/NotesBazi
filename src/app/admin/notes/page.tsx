@@ -28,6 +28,7 @@ import {
 import Link from "next/link";
 import { AdminNoteActions } from "@/components/admin-note-actions";
 import { AdminNotesList } from "@/components/admin-notes-list";
+import { AdminSearch } from "@/components/admin-search";
 import { cn } from "@/lib/utils";
 
 interface PageProps {
@@ -180,15 +181,7 @@ export default async function NotesManagement({ searchParams }: PageProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <form className="relative flex-grow md:w-80 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
-            <input 
-              name="q"
-              defaultValue={query}
-              placeholder="Search resources..." 
-              className="w-full pl-12 h-14 rounded-2xl border-none bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/40 dark:shadow-none focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium px-4"
-            />
-          </form>
+          <AdminSearch defaultValue={query} placeholder="Search resources..." />
         </div>
       </div>
 

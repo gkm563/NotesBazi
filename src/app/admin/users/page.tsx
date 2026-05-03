@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { UserRowActions } from "@/components/admin-user-actions";
+import { AdminSearch } from "@/components/admin-search";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -112,15 +113,11 @@ export default async function UserManagement({ searchParams }: PageProps) {
           <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Student Community</h1>
           <p className="text-slate-500 font-medium mt-2">Manage user accounts, roles, and platform access.</p>
         </div>
-        <form className="relative w-full md:w-96 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
-          <input 
-            name="q"
-            defaultValue={query}
-            placeholder="Search students..." 
-            className="w-full pl-12 py-4 rounded-2xl border-none bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/40 dark:shadow-none focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium"
-          />
-        </form>
+        <AdminSearch 
+          defaultValue={query} 
+          placeholder="Search students..." 
+          baseUrl="/admin/users" 
+        />
       </div>
 
       {/* Quick Stats */}
