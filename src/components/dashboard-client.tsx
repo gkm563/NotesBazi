@@ -14,6 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import Link from "next/link";
 import { DeleteNoteButton } from "@/components/delete-note-button";
@@ -329,7 +336,6 @@ export function DashboardClient({
                 <div className="grid grid-cols-1 gap-6">
                     <Label className="text-xs font-black uppercase text-slate-400">Bio</Label>
                     <Textarea value={editForm.bio} onChange={e => setEditForm({...editForm, bio: e.target.value})} className="rounded-2xl min-h-[100px] bg-slate-50 dark:bg-slate-800 border-none font-bold p-4" />
-                  </div>
                 </div>
                 <Button type="submit" disabled={isUpdating} className="rounded-xl bg-indigo-600 px-8 h-12 font-black shadow-lg">
                   {isUpdating ? "Saving..." : "Save Changes"}
