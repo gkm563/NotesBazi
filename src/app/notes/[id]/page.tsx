@@ -55,7 +55,7 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
   // Fetch similar notes (same subject or year, excluding current)
   const { data: similarNotes } = await supabase
     .from("notes")
-    .select("id, title, subject, year, downloads")
+    .select("id, title, subject, year, downloads, file_url, type")
     .neq("id", id)
     .or(`subject.eq."${note.subject}",year.eq."${note.year}"`)
     .limit(4);
@@ -209,18 +209,42 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
            <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-6">
               {similarNotes && similarNotes.length > 0 ? similarNotes.map((item) => (
                  <StaggerItem key={item.id}>
-                   <Link href={`/notes/${item.id}`} className="bg-white/80 dark:bg-slate-900/80 rounded-[2rem] p-6 border border-slate-200/60 dark:border-slate-800 flex flex-col justify-between h-48 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all group cursor-pointer">
-                      <div>
-                         <Badge className="bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 border-none mb-4 truncate max-w-full block">{item.subject}</Badge>
-                         <h4 className="font-bold text-slate-900 dark:text-white line-clamp-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors leading-snug">{item.title}</h4>
-                      </div>
-                      <div className="flex justify-between items-center text-sm font-semibold text-slate-400 mt-4">
-                         <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md text-xs">{item.year} Year</span>
-                         <span className="flex items-center bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 px-2 py-1 rounded-md text-xs">
-                           <Download size={12} className="mr-1"/> {item.downloads || 0}
-                         </span>
-                      </div>
-                   </Link>
+                    <Link href={`/notes/${item.id}`} className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200/60 dark:border-slate-800 overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-2 transition-all group flex flex-col h-full shadow-sm">
+                       {/* Thumbnail / Preview Area */}
+                       <div className="h-40 w-full bg-slate-50 dark:bg-slate-800 relative overflow-hidden flex items-center justify-center">
+                          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-30 z-0" />
+                          {item.file_url?.toLowerCase().endsWith('.pdf') ? (
+                            <div className="absolute inset-0 z-0 opacity-50 group-hover:opacity-100 transition-opacity">
+                              <iframe 
+                                src={`${item.file_url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                                className="w-[200%] h-[400px] border-none pointer-events-none scale-50 origin-top-left"
+                                tabIndex={-1}
+                                loading="lazy"
+                              />
+                            </div>
+                          ) : (
+                            <FileText size={40} className="text-indigo-400 relative z-10" />
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10" />
+                          <Badge className="absolute top-4 right-4 bg-white/90 dark:bg-slate-900/90 text-indigo-600 dark:text-indigo-400 border-none rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm">
+                             {item.type || "Resource"}
+                          </Badge>
+                       </div>
+
+                       <div className="p-6 flex flex-col flex-grow">
+                          <div className="mb-4">
+                             <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1">{item.subject}</p>
+                             <h4 className="font-bold text-slate-900 dark:text-white line-clamp-2 group-hover:text-indigo-600 transition-colors leading-snug">{item.title}</h4>
+                          </div>
+                          
+                          <div className="mt-auto flex justify-between items-center text-sm font-semibold text-slate-400">
+                             <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-tight">{item.year} Year</span>
+                             <span className="flex items-center bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 px-2 py-1 rounded-md text-[10px] font-bold">
+                               <Download size={12} className="mr-1"/> {item.downloads || 0}
+                             </span>
+                          </div>
+                       </div>
+                    </Link>
                  </StaggerItem>
               )) : (
                  <div className="col-span-full py-12 text-center bg-slate-50/50 dark:bg-slate-800/20 rounded-[2rem] border border-dashed border-slate-200 dark:border-slate-800 text-slate-500">
