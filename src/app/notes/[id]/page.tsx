@@ -102,7 +102,7 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10">
           {/* Left Column: Preview */}
           <AnimatedSection direction="right" delay={0.2} className="lg:col-span-2 space-y-8">
-            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-2xl shadow-indigo-500/5 dark:shadow-none border border-slate-200/60 dark:border-slate-700/50 h-[500px] md:h-[600px] lg:h-[800px] flex flex-col">
+            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-2xl shadow-indigo-500/5 dark:shadow-none border border-slate-200/60 dark:border-slate-700/50 h-[500px] md:h-[600px] lg:h-[1100px] flex flex-col">
               <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
                 <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
                   <div className="h-8 w-8 md:h-10 md:w-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
