@@ -84,7 +84,7 @@ export default async function NotesManagement({ searchParams }: PageProps) {
     const userIds = [...new Set(notes.map(n => n.uploaded_by).filter(Boolean))];
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, username")
+      .select("id, username, full_name, email")
       .in("id", userIds);
 
     // Map profiles for quick lookup

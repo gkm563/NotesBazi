@@ -280,9 +280,15 @@ export function AdminNotesList({ initialNotes }: AdminNotesListProps) {
                </div>
                <h3 className="text-xl font-black text-slate-900 dark:text-white truncate pr-4 group-hover:text-indigo-600 transition-colors">{note.title}</h3>
                <div className="flex flex-wrap justify-center lg:justify-start items-center gap-4 text-sm font-bold text-slate-400">
-                  <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 dark:bg-slate-800/50 rounded-xl group/user relative">
                     <User size={14} className="text-indigo-500" /> 
-                    {note.profiles?.username ? `@${note.profiles.username}` : "NotesBazi"}
+                    {note.profiles ? (
+                      <span className="text-slate-700 dark:text-slate-300">
+                        {note.profiles.full_name || `@${note.profiles.username}`}
+                      </span>
+                    ) : (
+                      "NotesBazi Admin"
+                    )}
                   </div>
                   <div className="flex items-center gap-1.5"><Calendar size={14} /> {note.created_at ? new Date(note.created_at).toISOString().split('T')[0] : "N/A"}</div>
                   <div className="flex items-center gap-1.5 text-emerald-600"><Download size={14} /> {note.downloads || 0}</div>
