@@ -281,16 +281,22 @@ export function AdminNotesList({ initialNotes }: AdminNotesListProps) {
                </div>
                <h3 className="text-xl font-black text-slate-900 dark:text-white truncate pr-4 group-hover:text-indigo-600 transition-colors">{note.title}</h3>
                <div className="flex flex-wrap justify-center lg:justify-start items-center gap-4 text-sm font-bold text-slate-400">
-                  <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 dark:bg-slate-800/50 rounded-xl group/user relative">
-                    <User size={14} className="text-indigo-500" /> 
+                  <Link 
+                    href={note.profiles ? `/admin/users?q=${note.profiles.username || note.profiles.email || note.profiles.id}` : "#"}
+                    className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 dark:bg-slate-800/50 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors group/user relative"
+                  >
+                    <User size={14} className="text-indigo-500 group-hover/user:scale-110 transition-transform" /> 
                     {note.profiles ? (
-                      <span className="text-slate-700 dark:text-slate-300">
-                        {note.profiles.full_name || `@${note.profiles.username}`}
+                      <span className="text-slate-700 dark:text-slate-300 font-bold">
+                        {note.profiles.full_name || (note.profiles.username ? `@${note.profiles.username}` : note.profiles.email?.split('@')[0]) || "Student"}
                       </span>
                     ) : (
-                      "NotesBazi Admin"
+                      <span className="text-slate-500 italic">NotesBazi Admin</span>
                     )}
-                  </div>
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover/user:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                      Manage Student
+                    </div>
+                  </Link>
                   <div className="flex items-center gap-1.5"><Calendar size={14} /> {note.created_at ? new Date(note.created_at).toISOString().split('T')[0] : "N/A"}</div>
                   <div className="flex items-center gap-1.5 text-emerald-600"><Download size={14} /> {note.downloads || 0}</div>
                   <div className="flex items-center gap-1.5 text-blue-600"><Eye size={14} /> {note.views || 0}</div>
