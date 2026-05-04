@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { AdminCharts } from "@/components/admin-charts";
+import { AIInsights } from "@/components/ai-insights";
 import { cn } from "@/lib/utils";
 
 export default async function AdminDashboard() {
@@ -93,6 +94,14 @@ export default async function AdminDashboard() {
            </Badge>
         </div>
       </div>
+
+      {/* AI Intelligence Layer */}
+      <AIInsights stats={{
+        totalStudents: userCount || 0,
+        totalResources: notesCount || 0,
+        openReports: reportsCount || 0,
+        totalDownloads: totalDownloads
+      }} />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

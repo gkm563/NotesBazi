@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   keywords: ["Notes", "UIT Prayagraj", "Engineering Notes", "PYQ", "Assignments"],
 };
 
+import { UploadProvider } from "@/components/providers/upload-provider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -29,13 +31,15 @@ export default function RootLayout({
           enableSystem={true}
           disableTransitionOnChange
         >
-          <Navbar />
-          <div className="pb-16 md:pb-0">
-            {children}
-          </div>
-          <Footer />
-          <MobileNav />
-          <Toaster position="top-center" richColors closeButton />
+          <UploadProvider>
+            <Navbar />
+            <div className="pb-16 md:pb-0">
+              {children}
+            </div>
+            <Footer />
+            <MobileNav />
+            <Toaster position="top-center" richColors closeButton />
+          </UploadProvider>
         </ThemeProvider>
       </body>
     </html>

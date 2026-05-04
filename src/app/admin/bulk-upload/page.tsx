@@ -12,7 +12,10 @@ import {
   Edit3,
   Search,
   Wand2,
-  Presentation
+  Presentation,
+  Settings2,
+  LayoutGrid,
+  CheckSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDropzone } from "react-dropzone";
@@ -20,9 +23,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { getAIModelData } from "@/lib/actions/ai";
+import { useUpload } from "@/components/providers/upload-provider";
 
 interface StagedFile {
   id: string;
@@ -37,8 +42,27 @@ interface StagedFile {
 
 export default function BulkUpload() {
   const [stagedFiles, setStagedFiles] = useState<StagedFile[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const { addUpload } = useUpload();
   const [isUploading, setIsUploading] = useState(false);
   const supabase = createClient();
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === stagedFiles.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(stagedFiles.map(f => f.id)));
+    }
+  };
 
   const handleAIAssist = async (id: string) => {
     const item = stagedFiles.find(f => f.id === id);
@@ -91,53 +115,46 @@ export default function BulkUpload() {
   };
 
   const updateFileData = (id: string, data: Partial<StagedFile>) => {
-    setStagedFiles(prev => prev.map(f => f.id === id ? { ...f, ...data } : f));
+    setStagedFiles(prev => {
+      const isSelected = selectedIds.has(id);
+      return prev.map(f => {
+        if (f.id === id) return { ...f, ...data };
+        
+        // Sync other selected items but exclude unique fields like title
+        if (isSelected && selectedIds.has(f.id)) {
+          const { title, ...syncableData } = data;
+          return { ...f, ...syncableData };
+        }
+        return f;
+      });
+    });
   };
 
   const handleBulkUpload = async () => {
-    if (stagedFiles.length === 0) return;
+    const filesToUpload = selectedIds.size > 0 
+      ? stagedFiles.filter(f => selectedIds.has(f.id))
+      : stagedFiles;
+
+    if (filesToUpload.length === 0) return;
     setIsUploading(true);
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      for (const staged of stagedFiles) {
-        if (staged.status === 'ready' || staged.status === 'pending') {
-          updateFileData(staged.id, { status: 'processing' });
-          
-          // 1. Upload to Storage
-          const fileName = `${Date.now()}-${staged.file.name}`;
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from("notes")
-            .upload(fileName, staged.file);
-
-          if (uploadError) throw uploadError;
-
-          const { data: { publicUrl } } = supabase.storage
-            .from("notes")
-            .getPublicUrl(fileName);
-
-          // 2. Save to Database
-          const { error: dbError } = await supabase
-            .from("notes")
-            .insert({
-              title: staged.title,
-              subject: staged.subject || "General",
-              year: staged.year,
-              type: staged.type,
-              file_url: publicUrl,
-              uploaded_by: user.id,
-              is_verified: true,
-              downloads: 0
-            });
-
-          if (dbError) throw dbError;
-          updateFileData(staged.id, { status: 'ready' });
-        }
+      for (const staged of filesToUpload) {
+        addUpload(staged.file, {
+          title: staged.title,
+          subject: staged.subject || "General",
+          year: staged.year,
+          type: staged.type,
+          is_verified: true,
+        });
       }
-      toast.success("All resources uploaded successfully!");
-      setStagedFiles([]);
+      
+      toast.success(`Queued ${filesToUpload.length} resources for background upload.`);
+      
+      // Remove uploaded files from staging
+      const uploadedIds = new Set(filesToUpload.map(f => f.id));
+      setStagedFiles(prev => prev.filter(f => !uploadedIds.has(f.id)));
+      setSelectedIds(new Set());
     } catch (error: any) {
       toast.error(error.message || "Upload failed");
     } finally {
@@ -158,7 +175,7 @@ export default function BulkUpload() {
           className="h-14 px-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black shadow-xl shadow-indigo-500/20 disabled:opacity-50 flex gap-2"
         >
           {isUploading ? <Loader2 className="animate-spin" /> : <UploadCloud />}
-          Publish All Resources
+          {selectedIds.size > 0 ? `Publish ${selectedIds.size} Selected` : "Publish All Resources"}
         </Button>
       </div>
 
@@ -185,25 +202,61 @@ export default function BulkUpload() {
       {/* Staging Area */}
       {stagedFiles.length > 0 && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between px-4">
-             <h2 className="text-xl font-black flex items-center gap-2">
-                Staging Area <Badge variant="secondary" className="rounded-lg">{stagedFiles.length}</Badge>
-             </h2>
-             <Button variant="ghost" onClick={() => setStagedFiles([])} className="text-red-500 font-bold hover:bg-red-50">Clear Staging</Button>
+          <div className="flex items-center justify-between px-6 py-4 bg-slate-50 dark:bg-slate-900/50 rounded-[2rem] border border-slate-100 dark:border-slate-800">
+             <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3">
+                   <Checkbox 
+                     checked={selectedIds.size === stagedFiles.length && stagedFiles.length > 0}
+                     onCheckedChange={toggleSelectAll}
+                     className="h-6 w-6 rounded-lg border-2"
+                   />
+                   <span className="text-sm font-black text-slate-500 uppercase tracking-widest">Select All</span>
+                </div>
+                
+                {selectedIds.size > 0 && (
+                  <div className="flex items-center gap-4 pl-6 border-l border-slate-200 dark:border-slate-700">
+                     <Badge className="bg-indigo-600 text-white px-3 py-1 rounded-lg font-black">
+                        {selectedIds.size} Selected
+                     </Badge>
+                     <p className="text-xs text-slate-400 font-bold italic">
+                        * Editing one selected item will sync all {selectedIds.size} items
+                     </p>
+                  </div>
+                )}
+             </div>
+
+             <div className="flex items-center gap-2">
+                <Button variant="ghost" onClick={() => setStagedFiles([])} className="text-red-500 font-bold hover:bg-red-50 rounded-xl">
+                   <Trash2 size={18} className="mr-2" /> Clear All
+                </Button>
+             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4">
              {stagedFiles.map((item) => (
-               <Card key={item.id} className="border-none shadow-xl shadow-slate-200/40 dark:shadow-none bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden group">
+               <Card 
+                 key={item.id} 
+                 className={cn(
+                   "border-none shadow-xl shadow-slate-200/40 dark:shadow-none bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden group transition-all duration-300",
+                   selectedIds.has(item.id) && "ring-2 ring-indigo-500 bg-indigo-50/30 dark:bg-indigo-900/10"
+                 )}
+               >
                  <CardContent className="p-6 flex flex-col lg:flex-row items-center gap-6">
-                    <div className="h-16 w-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center flex-shrink-0">
-                       {item.file.name.toLowerCase().match(/\.(ppt|pptx)$/) ? (
-                         <Presentation className="text-orange-400" />
-                       ) : item.file.name.toLowerCase().match(/\.(doc|docx)$/) ? (
-                         <FileText className="text-blue-400" />
-                       ) : (
-                         <FileText className="text-slate-400" />
-                       )}
+                    <div className="flex items-center gap-4">
+                       <Checkbox 
+                         checked={selectedIds.has(item.id)}
+                         onCheckedChange={() => toggleSelect(item.id)}
+                         className="h-6 w-6 rounded-lg border-2"
+                       />
+                       <div className="h-16 w-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center flex-shrink-0">
+                          {item.file.name.toLowerCase().match(/\.(ppt|pptx)$/) ? (
+                            <Presentation className="text-orange-400" />
+                          ) : item.file.name.toLowerCase().match(/\.(doc|docx)$/) ? (
+                            <FileText className="text-blue-400" />
+                          ) : (
+                            <FileText className="text-slate-400" />
+                          )}
+                       </div>
                     </div>
                     
                     <div className="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">

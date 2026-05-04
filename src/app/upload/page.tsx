@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { uploadNoteAction, updateNoteAction } from "@/lib/actions/notes";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useUpload } from "@/components/providers/upload-provider";
 
 const QUICK_SUBJECTS = [
   "Operating Systems", "DBMS", "Computer Networks", "DSA", 
@@ -46,6 +47,7 @@ const TYPES = [
 function UploadForm() {
   const router = useRouter();
   const supabase = createClient();
+  const { addUpload } = useUpload();
   const subjectInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -151,31 +153,14 @@ function UploadForm() {
 
       if (editId) {
         // Mode: Edit
+        setLoading(true);
         await updateNoteAction(editId, metadata);
         toast.success("Resource updated successfully!");
         router.push("/dashboard");
       } else if (file) {
-        // Mode: Upload New
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const filePath = `${user.id}/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("notes")
-          .upload(filePath, file);
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from("notes")
-          .getPublicUrl(filePath);
-
-        await uploadNoteAction({
-          ...metadata,
-          file_url: publicUrl,
-        });
-
-        toast.success("Brilliant! Your resource is live and helping others.");
+        // Mode: Upload New (Background)
+        addUpload(file, metadata);
+        toast.info("Upload started in background. You can continue browsing.");
         router.push("/dashboard");
       }
     } catch (error: any) {

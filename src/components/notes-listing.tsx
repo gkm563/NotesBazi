@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { 
   Search, 
@@ -16,7 +16,8 @@ import {
   Presentation,
   FileStack,
   Clock,
-  RefreshCcw
+  RefreshCcw,
+  ChevronDown
 } from "lucide-react";
 import { StaggerContainer, StaggerItem } from "@/components/ui/animated-section";
 import { Input } from "@/components/ui/input";
@@ -56,6 +57,11 @@ export function NotesListing({
   const supabase = createClient();
   const [notes, setNotes] = useState<any[]>(initialData);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const PAGE_SIZE = 12;
+  
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [yearFilter, setYearFilter] = useState(initialYear);
   const [semesterFilter, setSemesterFilter] = useState(initialSemester);
@@ -136,21 +142,26 @@ export function NotesListing({
     setTypeFilter(initialType);
     if (initialData && initialData.length > 0) {
       setNotes(initialData);
+      setHasMore(initialData.length >= PAGE_SIZE);
     }
   }, [initialSearch, initialYear, initialSemester, initialType, initialData]);
 
-  const fetchNotes = async (term?: string) => {
-    setLoading(true);
+  const fetchNotes = async (term?: string, isLoadMore = false) => {
+    if (isLoadMore) setLoadingMore(true);
+    else setLoading(true);
+
     const search = term ?? searchTerm;
     const year = yearFilter;
     const sem = semesterFilter;
     const type = typeFilter;
+    const currentPage = isLoadMore ? page + 1 : 0;
     
     try {
       let query = supabase
         .from("notes")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1);
 
       if (search) {
         query = query.or(`title.ilike.%${search}%,subject.ilike.%${search}%,description.ilike.%${search}%`);
@@ -186,18 +197,32 @@ export function NotesListing({
         }
       }
 
-      setNotes(fetchedNotes);
+      if (isLoadMore) {
+        setNotes(prev => [...prev, ...fetchedNotes]);
+        setPage(currentPage);
+      } else {
+        setNotes(fetchedNotes);
+        setPage(0);
+      }
+      
+      setHasMore(fetchedNotes.length === PAGE_SIZE);
     } catch (error: any) {
       console.error("Supabase Fetch Error:", error);
       toast.error("Failed to fetch notes. Please try again.");
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
+  const isInitialMount = useRef(true);
+
   useEffect(() => {
-    // Fetch if state is different from what we currently have
-    // or if we have no notes and filters are applied
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      // Skip fetch if we already have initial data from server
+      if (initialData && initialData.length > 0) return;
+    }
     fetchNotes();
   }, [yearFilter, semesterFilter, typeFilter, debouncedSearchTerm]);
 
@@ -463,35 +488,17 @@ export function NotesListing({
                       <div className="h-32 w-full bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-800/50 rounded-2xl flex items-center justify-center mb-6 group-hover:from-indigo-50 group-hover:to-violet-50 dark:group-hover:from-indigo-900/20 dark:group-hover:to-violet-900/20 transition-colors relative overflow-hidden">
                          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-50 z-0" />
                          
-                         {/* Document Preview Thumbnail - ONLY ON DESKTOP FOR PERFORMANCE */}
-                         {note.file_url?.toLowerCase().endsWith('.pdf') && (
-                           <>
-                             <div className="hidden md:block absolute inset-0 z-0 overflow-hidden pointer-events-none select-none bg-white dark:bg-slate-200">
-                               <iframe 
-                                 src={`${note.file_url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-                                 className="w-[200%] h-[500px] border-none pointer-events-none scale-50 origin-top-left opacity-100"
-                                 tabIndex={-1}
-                                 loading="lazy"
-                               />
-                               <div className="absolute inset-0 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] pointer-events-none"></div>
-                             </div>
-                             <div className="md:hidden relative z-10 transition-transform duration-500 group-hover:scale-110 drop-shadow-md">
-                               <FileText size={48} strokeWidth={1.5} className="text-indigo-400 dark:text-indigo-500" />
-                             </div>
-                           </>
-                         )}
-
-                         {!note.file_url?.toLowerCase().endsWith('.pdf') && (
-                           <div className="relative z-10 transition-transform duration-500 group-hover:scale-110 drop-shadow-md">
-                             {note.file_url?.toLowerCase().match(/\.(ppt|pptx)$/) ? (
-                               <Presentation size={48} strokeWidth={1.5} className="text-orange-400 dark:text-orange-500" />
-                             ) : note.file_url?.toLowerCase().match(/\.(doc|docx)$/) ? (
-                               <FileStack size={48} strokeWidth={1.5} className="text-blue-400 dark:text-blue-500" />
-                             ) : (
-                               <FileText size={48} strokeWidth={1.5} className="text-indigo-400 dark:text-indigo-500" />
-                             )}
-                           </div>
-                         )}
+                         <div className="relative z-10 transition-transform duration-500 group-hover:scale-110 drop-shadow-md">
+                           {note.file_url?.toLowerCase().endsWith('.pdf') ? (
+                             <FileText size={48} strokeWidth={1.5} className="text-indigo-400 dark:text-indigo-500" />
+                           ) : note.file_url?.toLowerCase().match(/\.(ppt|pptx)$/) ? (
+                             <Presentation size={48} strokeWidth={1.5} className="text-orange-400 dark:text-orange-500" />
+                           ) : note.file_url?.toLowerCase().match(/\.(doc|docx)$/) ? (
+                             <FileStack size={48} strokeWidth={1.5} className="text-blue-400 dark:text-blue-500" />
+                           ) : (
+                             <FileText size={48} strokeWidth={1.5} className="text-indigo-400 dark:text-indigo-500" />
+                           )}
+                         </div>
                       </div>
                       
                       <p className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-2 line-clamp-1">
@@ -545,6 +552,26 @@ export function NotesListing({
               </StaggerItem>
             ))}
             </StaggerContainer>
+
+            {hasMore && (
+              <div className="mt-12 flex justify-center">
+                 <Button 
+                   onClick={() => fetchNotes(searchTerm, true)} 
+                   disabled={loadingMore}
+                   className="h-16 px-10 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-black hover:bg-slate-50 dark:hover:bg-slate-800 shadow-xl transition-all flex gap-3"
+                 >
+                   {loadingMore ? (
+                     <>
+                       <RefreshCcw className="animate-spin" size={20} /> Loading...
+                     </>
+                   ) : (
+                     <>
+                       Load More Resources <ChevronDown size={20} />
+                     </>
+                   )}
+                 </Button>
+              </div>
+            )}
             </>
         ) : (
           <div className="py-32 text-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center">

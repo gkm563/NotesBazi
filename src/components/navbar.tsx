@@ -92,13 +92,13 @@ export function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group">
           <motion.div 
-            whileHover={{ scale: 1.1, rotate: 10 }}
-            className="h-10 w-10 md:h-12 md:w-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30"
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            className="h-10 w-10 md:h-12 md:w-12 rounded-xl flex items-center justify-center overflow-hidden bg-white shadow-md border border-slate-100"
           >
-            <BookOpen className="h-6 w-6 text-white" />
+            <img src="/logo.png" alt="UGI Logo" className="h-full w-full object-contain p-1" />
           </motion.div>
-          <span className="hidden sm:block text-xl md:text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400">
-            NotesBazi
+          <span className="hidden sm:block text-xl md:text-2xl font-black tracking-tighter text-slate-900 dark:text-white">
+            UGI<span className="text-indigo-600">Notes</span>
           </span>
         </Link>
 
